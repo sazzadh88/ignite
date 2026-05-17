@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/sazzad/ignite/database"
+	"github.com/sazzadh88/ignite/database"
 	_ "github.com/mattn/go-sqlite3"
 )
 

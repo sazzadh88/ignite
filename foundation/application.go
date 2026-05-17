@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sazzad/ignite/config"
-	"github.com/sazzad/ignite/container"
-	"github.com/sazzad/ignite/internal/scaffold"
+	"github.com/sazzadh88/ignite/config"
+	"github.com/sazzadh88/ignite/container"
+	"github.com/sazzadh88/ignite/internal/scaffold"
 )
 
 const Version = "0.1.0"

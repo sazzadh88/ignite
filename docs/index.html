@@ -93,7 +93,7 @@
         <div class="quick-start">
           <h3>Get up and running in 60 seconds</h3>
           <pre><code><span class="comment"># Install the CLI</span>
-go install github.com/sazzad/ignite/cmd/ignite@latest
+go install github.com/sazzadh88/ignite/cmd/ignite@latest
 
 <span class="comment"># Create a new project</span>
 ignite new myapp
@@ -116,8 +116,8 @@ ignite serve</code></pre>
         <pre><code><span class="keyword">package</span> main
 
 <span class="keyword">import</span> (
-    <span class="string">"github.com/sazzad/ignite/http"</span>
-    <span class="string">"github.com/sazzad/ignite/routing"</span>
+    <span class="string">"github.com/sazzadh88/ignite/http"</span>
+    <span class="string">"github.com/sazzadh88/ignite/routing"</span>
 )
 
 <span class="keyword">func</span> <span class="function">main</span>() {
@@ -141,8 +141,8 @@ ignite serve</code></pre>
         <pre><code><span class="keyword">package</span> controllers
 
 <span class="keyword">import</span> (
-    <span class="string">"github.com/sazzad/ignite/database"</span>
-    <span class="string">"github.com/sazzad/ignite/http"</span>
+    <span class="string">"github.com/sazzadh88/ignite/database"</span>
+    <span class="string">"github.com/sazzadh88/ignite/http"</span>
 )
 
 <span class="keyword">func</span> <span class="function">listUsers</span>(req *http.Request) *http.Response {
@@ -171,7 +171,7 @@ ignite serve</code></pre>
         <h3>Process Background Jobs</h3>
         <pre><code><span class="keyword">package</span> jobs
 
-<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/queue"</span>
+<span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/queue"</span>
 
 <span class="keyword">type</span> <span class="type">SendWelcomeEmail</span> <span class="keyword">struct</span> {
     UserID <span class="type">int</span>

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sazzad/ignite/orm"
+	"github.com/sazzadh88/ignite/orm"
 )
 
 // User model with soft deletes.

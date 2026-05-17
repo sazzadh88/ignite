@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/sazzad/ignite/auth"
+	"github.com/sazzadh88/ignite/auth"
 )
 
 // User represents a simple user model.

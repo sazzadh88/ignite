@@ -3,7 +3,7 @@ package collection_test
 import (
 	"fmt"
 
-	"github.com/sazzad/ignite/support/collection"
+	"github.com/sazzadh88/ignite/support/collection"
 )
 
 func ExampleCollection_basic() {

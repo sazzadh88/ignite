@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/sazzad/ignite/session"
+	"github.com/sazzadh88/ignite/session"
 )
 
 // Example demonstrates basic session usage.

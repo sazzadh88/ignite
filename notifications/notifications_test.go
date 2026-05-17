@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sazzad/ignite/mail"
+	"github.com/sazzadh88/ignite/mail"
 )
 
 // testUser implements Notifiable for testing

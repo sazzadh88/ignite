@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sazzad/ignite/schedule"
+	"github.com/sazzadh88/ignite/schedule"
 )
 
 func ExampleSchedule_Call() {

@@ -35,7 +35,7 @@
         <p>Powerful validation with 50+ built-in rules and support for custom rules:</p>
 
         <h3>Basic Validation</h3>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/validation"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/validation"</span>
 
 validator := validation.<span class="function">Make</span>(req.<span class="function">All</span>(), <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
     <span class="string">"name"</span>:  <span class="string">"required|min:3|max:255"</span>,
@@ -93,7 +93,7 @@ file, image, mimes, max (file size)</code></pre>
         <p>Unified caching interface with multiple drivers (memory, Redis, file):</p>
 
         <h3>Basic Usage</h3>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/cache"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/cache"</span>
 
 <span class="comment">// Store item</span>
 cache.<span class="function">Put</span>(<span class="string">"key"</span>, <span class="string">"value"</span>, <span class="number">60</span>) <span class="comment">// 60 seconds</span>
@@ -157,7 +157,7 @@ lock := cache.<span class="function">Lock</span>(<span class="string">"process-o
         <h3>Creating Jobs</h3>
         <pre><code><span class="keyword">package</span> jobs
 
-<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/queue"</span>
+<span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/queue"</span>
 
 <span class="keyword">type</span> <span class="type">ProcessPayment</span> <span class="keyword">struct</span> {
     OrderID <span class="type">int</span>
@@ -252,7 +252,7 @@ ignite queue:work --queue=high,default,low</code></pre>
 }</code></pre>
 
         <h3>Registering Listeners</h3>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/events"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/events"</span>
 
 events.<span class="function">Listen</span>(&UserRegistered{}, &SendWelcomeEmail{})
 events.<span class="function">Listen</span>(&UserRegistered{}, &LogRegistration{})</code></pre>
@@ -285,7 +285,7 @@ events.<span class="function">Listen</span>(&UserRegistered{}, &LogRegistration{
         <h3>Creating Mailables</h3>
         <pre><code><span class="keyword">package</span> mail
 
-<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/mail"</span>
+<span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/mail"</span>
 
 <span class="keyword">type</span> <span class="type">WelcomeEmail</span> <span class="keyword">struct</span> {
     User *User
@@ -301,7 +301,7 @@ events.<span class="function">Listen</span>(&UserRegistered{}, &LogRegistration{
 }</code></pre>
 
         <h3>Sending Mail</h3>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/mail"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/mail"</span>
 
 <span class="comment">// Send mailable</span>
 mail.<span class="function">Send</span>(&WelcomeEmail{User: user})
@@ -361,7 +361,7 @@ mail.
 }</code></pre>
 
         <h3>Sending Notifications</h3>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/notifications"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/notifications"</span>
 
 <span class="comment">// Send to user</span>
 user.<span class="function">Notify</span>(&InvoicePaid{Invoice: invoice})
@@ -378,7 +378,7 @@ notifications.<span class="function">Send</span>(users, &InvoicePaid{Invoice: in
         <h3>Defining Schedules</h3>
         <pre><code><span class="keyword">package</span> main
 
-<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/schedule"</span>
+<span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/schedule"</span>
 
 <span class="keyword">func</span> <span class="function">RegisterSchedule</span>(s *schedule.Schedule) {
     <span class="comment">// Run every minute</span>
@@ -427,7 +427,7 @@ notifications.<span class="function">Send</span>(users, &InvoicePaid{Invoice: in
         <p>Fluent HTTP client with retries, middleware, and macros:</p>
 
         <h3>Making Requests</h3>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/http/client"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/http/client"</span>
 
 <span class="comment">// GET request</span>
 response := client.<span class="function">Get</span>(<span class="string">"https://api.example.com/users"</span>)
@@ -460,7 +460,7 @@ response.<span class="function">JSON</span>(&users)</code></pre>
       <section class="section">
         <h2 class="section-title">Broadcasting</h2>
         <p>Real-time event broadcasting with WebSockets and Server-Sent Events:</p>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/broadcasting"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/broadcasting"</span>
 
 <span class="comment">// Broadcast event</span>
 broadcasting.
@@ -472,7 +472,7 @@ broadcasting.
       <section class="section">
         <h2 class="section-title">Rate Limiting</h2>
         <p>Flexible rate limiting for APIs and routes:</p>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/ratelimit"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/ratelimit"</span>
 
 <span class="comment">// Route rate limit</span>
 router.
@@ -501,7 +501,7 @@ limiter.<span class="function">Hit</span>(key)</code></pre>
       <section class="section">
         <h2 class="section-title">File Storage</h2>
         <p>Unified file storage interface for local and cloud storage (S3):</p>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/storage"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/storage"</span>
 
 <span class="comment">// Store file</span>
 path := storage.<span class="function">Put</span>(<span class="string">"avatars/user.jpg"</span>, fileData)
@@ -528,7 +528,7 @@ storage.<span class="function">Disk</span>(<span class="string">"s3"</span>).<sp
       <section class="section">
         <h2 class="section-title">Testing</h2>
         <p>Built-in testing utilities for HTTP, database, and more:</p>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/testing"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/testing"</span>
 
 <span class="keyword">func</span> <span class="function">TestUserCreation</span>(t *testing.T) {
     <span class="comment">// HTTP testing</span>

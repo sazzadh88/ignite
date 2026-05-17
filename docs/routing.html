@@ -36,8 +36,8 @@
         <pre><code><span class="keyword">package</span> routes
 
 <span class="keyword">import</span> (
-    <span class="string">"github.com/sazzad/ignite/http"</span>
-    <span class="string">"github.com/sazzad/ignite/routing"</span>
+    <span class="string">"github.com/sazzadh88/ignite/http"</span>
+    <span class="string">"github.com/sazzadh88/ignite/routing"</span>
 )
 
 <span class="keyword">func</span> <span class="function">RegisterRoutes</span>(router *routing.Router) {
@@ -284,7 +284,7 @@ router.<span class="function">Use</span>(
         <h3>Creating Custom Middleware</h3>
         <pre><code><span class="keyword">package</span> middleware
 
-<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/http"</span>
+<span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/http"</span>
 
 <span class="keyword">func</span> <span class="function">CheckAge</span>() http.Middleware {
     <span class="keyword">return</span> <span class="keyword">func</span>(next http.Handler) http.Handler {
@@ -307,7 +307,7 @@ router.<span class="function">Use</span>(
       <section class="section">
         <h2 class="section-title">Rate Limiting</h2>
         <p>Protect your routes with rate limiting:</p>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/ratelimit"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/ratelimit"</span>
 
 <span class="comment">// 60 requests per minute</span>
 router.

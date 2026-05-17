@@ -100,9 +100,9 @@ func goModTemplate(modulePath string) string {
 
 go 1.22
 
-require github.com/sazzad/ignite v0.1.0
+require github.com/sazzadh88/ignite v0.1.0
 
-replace github.com/sazzad/ignite => %s
+replace github.com/sazzadh88/ignite => %s
 `, modulePath, ignitePath())
 }
 
@@ -112,7 +112,7 @@ func ignitePath() string {
 	home, _ := os.UserHomeDir()
 	candidates := []string{
 		filepath.Join(home, "Projects/Go/framework"),
-		filepath.Join(home, "go/src/github.com/sazzad/ignite"),
+		filepath.Join(home, "go/src/github.com/sazzadh88/ignite"),
 	}
 	for _, p := range candidates {
 		if _, err := os.Stat(filepath.Join(p, "go.mod")); err == nil {
@@ -127,8 +127,8 @@ func mainTemplate(modulePath string) string {
 	return fmt.Sprintf(`package main
 
 import (
-	"github.com/sazzad/ignite/foundation"
-	"github.com/sazzad/ignite/routing"
+	"github.com/sazzadh88/ignite/foundation"
+	"github.com/sazzadh88/ignite/routing"
 	"%s/routes"
 )
 
@@ -193,7 +193,7 @@ func bootstrapTemplate(modulePath string) string {
 	_ = modulePath
 	return `package bootstrap
 
-import "github.com/sazzad/ignite/foundation"
+import "github.com/sazzadh88/ignite/foundation"
 
 // CreateApplication bootstraps and returns the application.
 func CreateApplication() *foundation.Application {
@@ -249,9 +249,9 @@ import (
 	"net/http"
 	"runtime"
 
-	"github.com/sazzad/ignite/foundation"
-	"github.com/sazzad/ignite/routing"
-	"github.com/sazzad/ignite/view"
+	"github.com/sazzadh88/ignite/foundation"
+	"github.com/sazzadh88/ignite/routing"
+	"github.com/sazzadh88/ignite/view"
 )
 
 // RegisterWeb defines web routes.
@@ -350,7 +350,7 @@ func appServiceProviderTemplate(modulePath string) string {
 	_ = modulePath
 	return `package Providers
 
-import "github.com/sazzad/ignite/foundation"
+import "github.com/sazzadh88/ignite/foundation"
 
 // AppServiceProvider registers application services.
 type AppServiceProvider struct{}
@@ -371,7 +371,7 @@ func routeServiceProviderTemplate(modulePath string) string {
 	_ = modulePath
 	return `package Providers
 
-import "github.com/sazzad/ignite/foundation"
+import "github.com/sazzadh88/ignite/foundation"
 
 // RouteServiceProvider loads application routes.
 type RouteServiceProvider struct{}
@@ -543,9 +543,9 @@ func welcomeViewTemplate(name string) string {
             </div>
 
             <div class="links">
-                <a href="https://github.com/sazzad/ignite">Documentation</a>
-                <a href="https://github.com/sazzad/ignite">GitHub</a>
-                <a href="https://github.com/sazzad/ignite">Ecosystem</a>
+                <a href="https://github.com/sazzadh88/ignite">Documentation</a>
+                <a href="https://github.com/sazzadh88/ignite">GitHub</a>
+                <a href="https://github.com/sazzadh88/ignite">Ecosystem</a>
             </div>
 
             <p class="version">Ignite v{{ .frameworkVersion }} &middot; {{ .goVersion }}</p>

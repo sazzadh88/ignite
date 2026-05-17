@@ -35,7 +35,7 @@
         <p>Authentication settings are configured in <code>config/auth.go</code>:</p>
         <pre><code><span class="keyword">package</span> config
 
-<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/auth"</span>
+<span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/auth"</span>
 
 <span class="keyword">func</span> <span class="function">Auth</span>() *auth.Config {
     <span class="keyword">return</span> &auth.Config{
@@ -69,7 +69,7 @@
 
         <h3>Session Guard (Web)</h3>
         <p>Session-based authentication stores the user ID in the session:</p>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/auth"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/auth"</span>
 
 <span class="comment">// Attempt to authenticate</span>
 <span class="keyword">if</span> auth.<span class="function">Attempt</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
@@ -120,8 +120,8 @@ user := auth.<span class="function">Guard</span>(<span class="string">"api"</spa
         <pre><code><span class="keyword">package</span> controllers
 
 <span class="keyword">import</span> (
-    <span class="string">"github.com/sazzad/ignite/auth"</span>
-    <span class="string">"github.com/sazzad/ignite/http"</span>
+    <span class="string">"github.com/sazzadh88/ignite/auth"</span>
+    <span class="string">"github.com/sazzadh88/ignite/http"</span>
 )
 
 <span class="keyword">func</span> <span class="function">Login</span>(req *http.Request) *http.Response {
@@ -182,7 +182,7 @@ id := auth.<span class="function">ID</span>()
       <section class="section">
         <h2 class="section-title">Password Hashing</h2>
         <p>Ignite uses bcrypt for secure password hashing:</p>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/hashing"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/hashing"</span>
 
 <span class="comment">// Hash a password</span>
 hashed := hashing.<span class="function">Make</span>(<span class="string">"secret-password"</span>)
@@ -221,7 +221,7 @@ hashed := hashing.<span class="function">Make</span>(<span class="string">"secre
       <section class="section">
         <h2 class="section-title">Protecting Routes</h2>
         <p>Use the auth middleware to require authentication:</p>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/middleware"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/middleware"</span>
 
 <span class="comment">// Protect a single route</span>
 router.
@@ -255,7 +255,7 @@ router.
         <p>Issue and manage personal access tokens for API authentication:</p>
 
         <h3>Creating Tokens</h3>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/auth"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/auth"</span>
 
 <span class="comment">// Create a token</span>
 token := user.<span class="function">CreateToken</span>(<span class="string">"token-name"</span>)
@@ -286,7 +286,7 @@ user.<span class="function">RevokeAllTokens</span>()</code></pre>
         <p>Gates provide a simple closure-based approach to authorization:</p>
 
         <h3>Defining Gates</h3>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/gate"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/gate"</span>
 
 <span class="comment">// In a service provider</span>
 gate.<span class="function">Define</span>(<span class="string">"update-post"</span>, <span class="keyword">func</span>(user *User, post *Post) <span class="type">bool</span> {
@@ -358,7 +358,7 @@ gate.<span class="function">After</span>(<span class="keyword">func</span>(user 
 }</code></pre>
 
         <h3>Registering Policies</h3>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/gate"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/gate"</span>
 
 gate.<span class="function">Policy</span>(&Post{}, &PostPolicy{})</code></pre>
 
@@ -413,7 +413,7 @@ router.
       <section class="section">
         <h2 class="section-title">Password Reset</h2>
         <p>Send password reset links via email:</p>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/auth"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/auth"</span>
 
 <span class="comment">// Send reset link</span>
 auth.<span class="function">SendPasswordResetLink</span>(email)

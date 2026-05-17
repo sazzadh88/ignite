@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/sazzad/ignite/schema"
+	"github.com/sazzadh88/ignite/schema"
 )
 
 // mockDB is a simple mock for demonstration purposes.

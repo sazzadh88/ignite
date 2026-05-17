@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/sazzad/ignite/cache"
+	"github.com/sazzadh88/ignite/cache"
 )
 
 func ExampleCache_basic() {

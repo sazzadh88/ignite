@@ -3,7 +3,7 @@ package gotest
 import (
 	"testing"
 
-	"github.com/sazzad/ignite/foundation"
+	"github.com/sazzadh88/ignite/foundation"
 )
 
 // TestCase provides a base test case for Ignite applications.

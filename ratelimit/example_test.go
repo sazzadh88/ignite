@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/sazzad/ignite/ratelimit"
+	"github.com/sazzadh88/ignite/ratelimit"
 )
 
 // Example_basicUsage demonstrates basic rate limiting with Attempt.

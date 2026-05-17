@@ -4,10 +4,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/sazzad/ignite/actions"><img src="https://github.com/sazzad/ignite/workflows/tests/badge.svg" alt="Build Status"></a>
-  <a href="https://pkg.go.dev/github.com/sazzad/ignite"><img src="https://pkg.go.dev/badge/github.com/sazzad/ignite.svg" alt="Go Reference"></a>
-  <a href="https://goreportcard.com/report/github.com/sazzad/ignite"><img src="https://goreportcard.com/badge/github.com/sazzad/ignite" alt="Go Report Card"></a>
-  <a href="https://github.com/sazzad/ignite/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License"></a>
+  <a href="https://github.com/sazzadh88/ignite/actions"><img src="https://github.com/sazzadh88/ignite/workflows/tests/badge.svg" alt="Build Status"></a>
+  <a href="https://pkg.go.dev/github.com/sazzadh88/ignite"><img src="https://pkg.go.dev/badge/github.com/sazzadh88/ignite.svg" alt="Go Reference"></a>
+  <a href="https://goreportcard.com/report/github.com/sazzadh88/ignite"><img src="https://goreportcard.com/badge/github.com/sazzadh88/ignite" alt="Go Report Card"></a>
+  <a href="https://github.com/sazzadh88/ignite/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License"></a>
 </p>
 
 ## About Ignite
@@ -27,7 +27,7 @@ Documentation for the framework can be found in the [docs directory](docs/). Sta
 Install the Ignite CLI:
 
 ```bash
-go install github.com/sazzad/ignite/cmd/ignite@latest
+go install github.com/sazzadh88/ignite/cmd/ignite@latest
 ```
 
 Create a new application:

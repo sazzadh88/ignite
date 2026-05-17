@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sazzad/ignite/validation"
+	"github.com/sazzadh88/ignite/validation"
 )
 
 func ExampleMake() {

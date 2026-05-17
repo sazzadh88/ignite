@@ -2,7 +2,7 @@ package httpclient_test
 
 import (
 	"fmt"
-	"github.com/sazzad/ignite/httpclient"
+	"github.com/sazzadh88/ignite/httpclient"
 	"net/http"
 	"net/http/httptest"
 )

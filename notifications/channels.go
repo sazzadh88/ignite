@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sazzad/ignite/mail"
+	"github.com/sazzadh88/ignite/mail"
 )
 
 // Channel defines the interface for notification channels.

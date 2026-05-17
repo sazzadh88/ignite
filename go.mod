@@ -1,4 +1,4 @@
-module github.com/sazzad/ignite
+module github.com/sazzadh88/ignite
 
 go 1.26.3
 

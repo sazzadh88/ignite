@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/sazzad/ignite/encryption"
+	"github.com/sazzadh88/ignite/encryption"
 )
 
 func Example_basicUsage() {

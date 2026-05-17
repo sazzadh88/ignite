@@ -1,7 +1,7 @@
 // Package notifications provides a multi-channel notification system.
 package notifications
 
-import "github.com/sazzad/ignite/mail"
+import "github.com/sazzadh88/ignite/mail"
 
 // Notification defines the interface for all notifications.
 type Notification interface {

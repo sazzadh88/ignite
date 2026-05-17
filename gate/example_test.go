@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/sazzad/ignite/gate"
+	"github.com/sazzadh88/ignite/gate"
 )
 
 // User represents an authenticated user.

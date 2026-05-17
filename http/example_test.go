@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	gohttp "github.com/sazzad/ignite/http"
+	gohttp "github.com/sazzadh88/ignite/http"
 )
 
 // Example_basicUsage demonstrates basic request and response handling

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/sazzad/ignite/hashing"
+	"github.com/sazzadh88/ignite/hashing"
 )
 
 func Example_basicUsage() {

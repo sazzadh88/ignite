@@ -61,7 +61,7 @@ DB_SSLMODE=disable</code></pre>
         <p>The query builder provides a fluent interface for building SQL queries:</p>
 
         <h3>Retrieving Data</h3>
-        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/database"</span>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/database"</span>
 
 <span class="comment">// Get all records</span>
 users := database.<span class="function">Table</span>(<span class="string">"users"</span>).<span class="function">Get</span>()
@@ -259,7 +259,7 @@ database.<span class="function">Table</span>(<span class="string">"sessions"</sp
         <pre><code><span class="keyword">package</span> models
 
 <span class="keyword">import</span> (
-    <span class="string">"github.com/sazzad/ignite/orm"</span>
+    <span class="string">"github.com/sazzadh88/ignite/orm"</span>
     <span class="string">"time"</span>
 )
 
@@ -394,7 +394,7 @@ database.
         <h3>Migration Structure</h3>
         <pre><code><span class="keyword">package</span> migrations
 
-<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/schema"</span>
+<span class="keyword">import</span> <span class="string">"github.com/sazzadh88/ignite/schema"</span>
 
 <span class="keyword">func</span> <span class="function">CreateUsersTable</span>() *schema.Migration {
     <span class="keyword">return</span> &schema.Migration{
