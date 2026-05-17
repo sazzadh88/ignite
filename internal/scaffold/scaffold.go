@@ -521,7 +521,7 @@ func welcomeViewTemplate(name string) string {
     <div class="container">
         <div class="content">
             <h1 class="logo">%s</h1>
-            <p class="tagline">Built with Ignite — the Laravel of Go</p>
+            <p class="tagline">Built with Ignite — Web artisan meets Go performance</p>
 
             <div class="cards">
                 <div class="card">

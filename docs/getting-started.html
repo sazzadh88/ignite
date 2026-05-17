@@ -32,11 +32,29 @@
       <!-- Installation -->
       <section class="section">
         <h2 class="section-title">Installation</h2>
-        <p>Ignite requires Go 1.26.3 or higher. Install the Ignite CLI using Go's package manager:</p>
+        <p>Ignite requires Go 1.22 or higher. Install the Ignite CLI using Go's package manager:</p>
         <pre><code>go install github.com/sazzadh88/ignite/cmd/ignite@latest</code></pre>
+
+        <h3>PATH Setup</h3>
+        <p>Ensure Go's bin directory is in your PATH so the <code>ignite</code> command is available globally:</p>
+
+        <p><strong>macOS / Linux (zsh):</strong></p>
+        <pre><code>echo 'export PATH=$PATH:$HOME/go/bin' >> ~/.zshrc
+source ~/.zshrc</code></pre>
+
+        <p><strong>macOS / Linux (bash):</strong></p>
+        <pre><code>echo 'export PATH=$PATH:$HOME/go/bin' >> ~/.bashrc
+source ~/.bashrc</code></pre>
+
+        <p><strong>Windows (PowerShell):</strong></p>
+        <pre><code>[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\go\bin", "User")</code></pre>
+
+        <p><strong>Windows (CMD):</strong></p>
+        <pre><code>setx PATH "%PATH%;%USERPROFILE%\go\bin"</code></pre>
+
         <p>Verify the installation:</p>
-        <pre><code>ignite --version</code></pre>
-        <p>You should see: <code>Ignite CLI v0.1.0</code></p>
+        <pre><code>ignite version</code></pre>
+        <p>You should see the Ignite ASCII banner with version info.</p>
       </section>
 
       <!-- Creating a Project -->

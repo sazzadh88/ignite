@@ -278,7 +278,7 @@ func printUsage() {
  |___\__, |_||_|_|\__\___|
      |___/                 v0.1.0
 
- The Laravel of Go.
+ Web artisan meets Go performance.
 
 Usage:
   ignite <command> [arguments] [flags]

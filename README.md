@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">Ignite</h1>
-  <p align="center"><strong>The Laravel of Go</strong></p>
+  <p align="center"><strong>Web artisan meets Go performance.</strong></p>
 </p>
 
 <p align="center">
@@ -12,7 +12,7 @@
 
 ## About Ignite
 
-Ignite is a full-stack web application framework for Go that brings the elegance and developer experience of Laravel to the Go ecosystem. It provides an expressive, intuitive API for building modern web applications with minimal configuration and maximum productivity.
+Ignite is a full-stack web application framework for Go where web artisans meet Go performance. It provides an expressive, intuitive API for building modern web applications with minimal configuration and maximum productivity.
 
 With Ignite, you get everything you need to build production-ready applications: routing, ORM with relationships, authentication, authorization, validation, queues, events, scheduling, caching, mail, notifications, and more. All powered by pure Go with zero external runtime dependencies.
 
@@ -28,6 +28,37 @@ Install the Ignite CLI:
 
 ```bash
 go install github.com/sazzadh88/ignite/cmd/ignite@latest
+```
+
+### PATH Setup
+
+After installation, ensure Go's bin directory is in your PATH:
+
+**macOS / Linux (zsh):**
+```bash
+echo 'export PATH=$PATH:$HOME/go/bin' >> ~/.zshrc
+source ~/.zshrc
+```
+
+**macOS / Linux (bash):**
+```bash
+echo 'export PATH=$PATH:$HOME/go/bin' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Windows (PowerShell):**
+```powershell
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\go\bin", "User")
+```
+
+**Windows (CMD):**
+```cmd
+setx PATH "%PATH%;%USERPROFILE%\go\bin"
+```
+
+Verify installation:
+```bash
+ignite version
 ```
 
 Create a new application:
