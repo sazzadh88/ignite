@@ -14,7 +14,7 @@ import (
 	"github.com/sazzadh88/ignite/internal/scaffold"
 )
 
-const Version = "0.1.0"
+const Version = "0.1.5"
 
 // ServiceProvider defines the contract for service providers.
 type ServiceProvider interface {
