@@ -303,7 +303,7 @@ func printBanner() {
 	for i, line := range lines {
 		fmt.Printf("%s%s%s\n", colors[i%len(colors)], line, reset)
 	}
-	fmt.Printf("\033[38;5;141m v0.1.2%s\n", reset)
+	fmt.Printf("\033[38;5;141m v0.1.3%s\n", reset)
 	fmt.Printf("\033[38;5;245m Web artisan meets Go performance.%s\n", reset)
 }
 
