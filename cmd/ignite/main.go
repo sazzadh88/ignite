@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/sazzadh88/ignite/internal/scaffold"
@@ -57,7 +58,18 @@ func main() {
 		// TODO: implement route listing
 
 	case "version", "--version", "-v":
-		fmt.Println("Ignite v0.1.0")
+		fmt.Println("Ignite v0.1.1")
+
+	case "self-update", "upgrade":
+		fmt.Println("  Upgrading Ignite...")
+		cmd := exec.Command("go", "install", "github.com/sazzadh88/ignite/cmd/ignite@latest")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "  Error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("  ✓ Ignite upgraded to latest version.")
 
 	case "help", "--help", "-h":
 		printUsage()
@@ -276,7 +288,7 @@ func printUsage() {
  |_ _|__ _ _ _ (_) |_ ___
   | |/ _` + "`" + ` | ' \| |  _/ -_)
  |___\__, |_||_|_|\__\___|
-     |___/                 v0.1.0
+     |___/                 v0.1.1
 
  Web artisan meets Go performance.
 
@@ -291,6 +303,7 @@ Available Commands:
   key:generate          Generate application key
   route:list            List registered routes
   version               Display framework version
+  upgrade               Upgrade Ignite to latest version
 
 Make Commands:
   make:controller <Name>   Generate a controller [--api for API resource]
