@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authentication - Ignite</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>Ignite</h1>
+        <div class="version">v0.1.0</div>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting Started</a></li>
+        <li><a href="routing.html">Routing</a></li>
+        <li><a href="database.html">Database</a></li>
+        <li><a href="authentication.html" class="active">Authentication</a></li>
+        <li><a href="features.html">Features</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1>Authentication</h1>
+      <p>Ignite includes a complete authentication system out of the box with support for session-based and token-based authentication, plus a powerful authorization system with Gates and Policies.</p>
+
+      <!-- Configuration -->
+      <section class="section">
+        <h2 class="section-title">Configuration</h2>
+        <p>Authentication settings are configured in <code>config/auth.go</code>:</p>
+        <pre><code><span class="keyword">package</span> config
+
+<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/auth"</span>
+
+<span class="keyword">func</span> <span class="function">Auth</span>() *auth.Config {
+    <span class="keyword">return</span> &auth.Config{
+        Defaults: auth.Defaults{
+            Guard: <span class="string">"web"</span>,
+        },
+        Guards: <span class="keyword">map</span>[<span class="type">string</span>]auth.Guard{
+            <span class="string">"web"</span>: {
+                Driver:   <span class="string">"session"</span>,
+                Provider: <span class="string">"users"</span>,
+            },
+            <span class="string">"api"</span>: {
+                Driver:   <span class="string">"token"</span>,
+                Provider: <span class="string">"users"</span>,
+            },
+        },
+        Providers: <span class="keyword">map</span>[<span class="type">string</span>]auth.Provider{
+            <span class="string">"users"</span>: {
+                Driver: <span class="string">"eloquent"</span>,
+                Model:  <span class="string">"models.User"</span>,
+            },
+        },
+    }
+}</code></pre>
+      </section>
+
+      <!-- Guards -->
+      <section class="section">
+        <h2 class="section-title">Guards</h2>
+        <p>Guards define how users are authenticated for each request. Ignite includes session and token guards:</p>
+
+        <h3>Session Guard (Web)</h3>
+        <p>Session-based authentication stores the user ID in the session:</p>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/auth"</span>
+
+<span class="comment">// Attempt to authenticate</span>
+<span class="keyword">if</span> auth.<span class="function">Attempt</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+    <span class="string">"email"</span>:    req.<span class="function">Input</span>(<span class="string">"email"</span>),
+    <span class="string">"password"</span>: req.<span class="function">Input</span>(<span class="string">"password"</span>),
+}) {
+    <span class="comment">// Authentication passed</span>
+    <span class="keyword">return</span> req.<span class="function">Redirect</span>(<span class="string">"/dashboard"</span>)
+}
+
+<span class="comment">// Authentication failed</span>
+<span class="keyword">return</span> req.<span class="function">Back</span>().<span class="function">WithErrors</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+    <span class="string">"email"</span>: <span class="string">"Invalid credentials"</span>,
+})</code></pre>
+
+        <h3>Token Guard (API)</h3>
+        <p>Token-based authentication uses bearer tokens for API requests:</p>
+        <pre><code><span class="comment">// Generate token after login</span>
+user := <span class="comment">/* get user */</span>
+token := auth.<span class="function">Guard</span>(<span class="string">"api"</span>).<span class="function">CreateToken</span>(user)
+
+<span class="keyword">return</span> req.<span class="function">JSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+    <span class="string">"access_token"</span>: token,
+    <span class="string">"token_type"</span>:   <span class="string">"Bearer"</span>,
+})
+
+<span class="comment">// Client includes token in requests:</span>
+<span class="comment">// Authorization: Bearer TOKEN_HERE</span></code></pre>
+
+        <h3>Using Different Guards</h3>
+        <pre><code><span class="comment">// Use default guard</span>
+user := auth.<span class="function">User</span>()
+
+<span class="comment">// Use specific guard</span>
+user := auth.<span class="function">Guard</span>(<span class="string">"api"</span>).<span class="function">User</span>()
+
+<span class="comment">// Check if authenticated</span>
+<span class="keyword">if</span> auth.<span class="function">Check</span>() {
+    <span class="comment">// User is authenticated</span>
+}</code></pre>
+      </section>
+
+      <!-- Authentication -->
+      <section class="section">
+        <h2 class="section-title">Authentication</h2>
+
+        <h3>Login</h3>
+        <pre><code><span class="keyword">package</span> controllers
+
+<span class="keyword">import</span> (
+    <span class="string">"github.com/sazzad/ignite/auth"</span>
+    <span class="string">"github.com/sazzad/ignite/http"</span>
+)
+
+<span class="keyword">func</span> <span class="function">Login</span>(req *http.Request) *http.Response {
+    credentials := <span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+        <span class="string">"email"</span>:    req.<span class="function">Input</span>(<span class="string">"email"</span>),
+        <span class="string">"password"</span>: req.<span class="function">Input</span>(<span class="string">"password"</span>),
+    }
+
+    <span class="comment">// Simple login</span>
+    <span class="keyword">if</span> auth.<span class="function">Attempt</span>(credentials) {
+        <span class="keyword">return</span> req.<span class="function">Redirect</span>(<span class="string">"/dashboard"</span>)
+    }
+
+    <span class="comment">// Login with "remember me"</span>
+    <span class="keyword">if</span> auth.<span class="function">Attempt</span>(credentials, req.<span class="function">Has</span>(<span class="string">"remember"</span>)) {
+        <span class="keyword">return</span> req.<span class="function">Redirect</span>(<span class="string">"/dashboard"</span>)
+    }
+
+    <span class="keyword">return</span> req.<span class="function">Back</span>().<span class="function">WithErrors</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+        <span class="string">"email"</span>: <span class="string">"Invalid credentials"</span>,
+    })
+}</code></pre>
+
+        <h3>Logout</h3>
+        <pre><code><span class="keyword">func</span> <span class="function">Logout</span>(req *http.Request) *http.Response {
+    auth.<span class="function">Logout</span>()
+    <span class="keyword">return</span> req.<span class="function">Redirect</span>(<span class="string">"/"</span>)
+}</code></pre>
+
+        <h3>Manual Login</h3>
+        <pre><code><span class="comment">// Login a user by ID</span>
+auth.<span class="function">LoginUsingID</span>(<span class="number">123</span>)
+
+<span class="comment">// Login a user instance</span>
+auth.<span class="function">Login</span>(user)
+
+<span class="comment">// Login for a single request (stateless)</span>
+auth.<span class="function">Once</span>(credentials)</code></pre>
+
+        <h3>Retrieving the Authenticated User</h3>
+        <pre><code><span class="comment">// Get authenticated user</span>
+user := auth.<span class="function">User</span>()
+
+<span class="comment">// Get user ID</span>
+id := auth.<span class="function">ID</span>()
+
+<span class="comment">// Check authentication status</span>
+<span class="keyword">if</span> auth.<span class="function">Check</span>() {
+    <span class="comment">// User is logged in</span>
+}
+
+<span class="keyword">if</span> auth.<span class="function">Guest</span>() {
+    <span class="comment">// User is not logged in</span>
+}</code></pre>
+      </section>
+
+      <!-- Password Hashing -->
+      <section class="section">
+        <h2 class="section-title">Password Hashing</h2>
+        <p>Ignite uses bcrypt for secure password hashing:</p>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/hashing"</span>
+
+<span class="comment">// Hash a password</span>
+hashed := hashing.<span class="function">Make</span>(<span class="string">"secret-password"</span>)
+
+<span class="comment">// Verify a password</span>
+<span class="keyword">if</span> hashing.<span class="function">Check</span>(<span class="string">"secret-password"</span>, hashed) {
+    <span class="comment">// Password matches</span>
+}
+
+<span class="comment">// Check if rehashing is needed</span>
+<span class="keyword">if</span> hashing.<span class="function">NeedsRehash</span>(hashed) {
+    <span class="comment">// Rehash the password</span>
+    newHashed := hashing.<span class="function">Make</span>(password)
+}</code></pre>
+
+        <h3>User Registration Example</h3>
+        <pre><code><span class="keyword">func</span> <span class="function">Register</span>(req *http.Request) *http.Response {
+    <span class="comment">// Validate request...</span>
+
+    user := User{
+        Name:     req.<span class="function">Input</span>(<span class="string">"name"</span>),
+        Email:    req.<span class="function">Input</span>(<span class="string">"email"</span>),
+        Password: hashing.<span class="function">Make</span>(req.<span class="function">Input</span>(<span class="string">"password"</span>)),
+    }
+
+    database.<span class="function">Create</span>(&user)
+
+    <span class="comment">// Log the user in</span>
+    auth.<span class="function">Login</span>(user)
+
+    <span class="keyword">return</span> req.<span class="function">Redirect</span>(<span class="string">"/dashboard"</span>)
+}</code></pre>
+      </section>
+
+      <!-- Protecting Routes -->
+      <section class="section">
+        <h2 class="section-title">Protecting Routes</h2>
+        <p>Use the auth middleware to require authentication:</p>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/middleware"</span>
+
+<span class="comment">// Protect a single route</span>
+router.
+    <span class="function">Get</span>(<span class="string">"/dashboard"</span>, dashboardHandler).
+    <span class="function">Middleware</span>(middleware.<span class="function">Auth</span>())
+
+<span class="comment">// Protect a route group</span>
+router.<span class="function">Group</span>(<span class="keyword">func</span>(r *routing.Router) {
+    r.<span class="function">Middleware</span>(middleware.<span class="function">Auth</span>())
+
+    r.<span class="function">Get</span>(<span class="string">"/dashboard"</span>, dashboardHandler)
+    r.<span class="function">Get</span>(<span class="string">"/profile"</span>, profileHandler)
+    r.<span class="function">Post</span>(<span class="string">"/settings"</span>, settingsHandler)
+})
+
+<span class="comment">// Specify guard</span>
+router.
+    <span class="function">Get</span>(<span class="string">"/api/users"</span>, apiUsersHandler).
+    <span class="function">Middleware</span>(middleware.<span class="function">Auth</span>(<span class="string">"api"</span>))</code></pre>
+
+        <h3>Guest Middleware</h3>
+        <p>Redirect authenticated users away from login/register pages:</p>
+        <pre><code>router.
+    <span class="function">Get</span>(<span class="string">"/login"</span>, loginHandler).
+    <span class="function">Middleware</span>(middleware.<span class="function">Guest</span>())</code></pre>
+      </section>
+
+      <!-- API Tokens -->
+      <section class="section">
+        <h2 class="section-title">API Tokens</h2>
+        <p>Issue and manage personal access tokens for API authentication:</p>
+
+        <h3>Creating Tokens</h3>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/auth"</span>
+
+<span class="comment">// Create a token</span>
+token := user.<span class="function">CreateToken</span>(<span class="string">"token-name"</span>)
+
+<span class="comment">// Create token with abilities (scopes)</span>
+token := user.<span class="function">CreateToken</span>(<span class="string">"token-name"</span>, []<span class="type">string</span>{
+    <span class="string">"posts:read"</span>,
+    <span class="string">"posts:write"</span>,
+})</code></pre>
+
+        <h3>Token Abilities</h3>
+        <pre><code><span class="comment">// Check if user can perform ability</span>
+<span class="keyword">if</span> user.<span class="function">TokenCan</span>(<span class="string">"posts:write"</span>) {
+    <span class="comment">// Token has ability</span>
+}</code></pre>
+
+        <h3>Revoking Tokens</h3>
+        <pre><code><span class="comment">// Revoke specific token</span>
+user.<span class="function">RevokeToken</span>(tokenID)
+
+<span class="comment">// Revoke all tokens</span>
+user.<span class="function">RevokeAllTokens</span>()</code></pre>
+      </section>
+
+      <!-- Authorization (Gates) -->
+      <section class="section">
+        <h2 class="section-title">Authorization - Gates</h2>
+        <p>Gates provide a simple closure-based approach to authorization:</p>
+
+        <h3>Defining Gates</h3>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/gate"</span>
+
+<span class="comment">// In a service provider</span>
+gate.<span class="function">Define</span>(<span class="string">"update-post"</span>, <span class="keyword">func</span>(user *User, post *Post) <span class="type">bool</span> {
+    <span class="keyword">return</span> user.ID == post.UserID
+})
+
+gate.<span class="function">Define</span>(<span class="string">"view-admin"</span>, <span class="keyword">func</span>(user *User) <span class="type">bool</span> {
+    <span class="keyword">return</span> user.IsAdmin
+})</code></pre>
+
+        <h3>Checking Abilities</h3>
+        <pre><code><span class="comment">// Check if user is authorized</span>
+<span class="keyword">if</span> gate.<span class="function">Allows</span>(<span class="string">"update-post"</span>, post) {
+    <span class="comment">// User can update post</span>
+}
+
+<span class="keyword">if</span> gate.<span class="function">Denies</span>(<span class="string">"update-post"</span>, post) {
+    <span class="comment">// User cannot update post</span>
+}
+
+<span class="comment">// Authorize or throw</span>
+gate.<span class="function">Authorize</span>(<span class="string">"update-post"</span>, post) <span class="comment">// Throws 403 if denied</span></code></pre>
+
+        <h3>Before and After Hooks</h3>
+        <pre><code><span class="comment">// Run before all gate checks</span>
+gate.<span class="function">Before</span>(<span class="keyword">func</span>(user *User, ability <span class="type">string</span>) *<span class="type">bool</span> {
+    <span class="keyword">if</span> user.IsSuperAdmin {
+        allow := <span class="keyword">true</span>
+        <span class="keyword">return</span> &allow <span class="comment">// Allow everything</span>
+    }
+    <span class="keyword">return</span> <span class="keyword">nil</span> <span class="comment">// Continue to gate check</span>
+})
+
+<span class="comment">// Run after all gate checks</span>
+gate.<span class="function">After</span>(<span class="keyword">func</span>(user *User, ability <span class="type">string</span>, result <span class="type">bool</span>) <span class="type">bool</span> {
+    <span class="comment">// Log authorization attempt</span>
+    <span class="keyword">return</span> result
+})</code></pre>
+      </section>
+
+      <!-- Authorization (Policies) -->
+      <section class="section">
+        <h2 class="section-title">Authorization - Policies</h2>
+        <p>Policies organize authorization logic around a particular model:</p>
+
+        <h3>Creating Policies</h3>
+        <pre><code>ignite make:policy PostPolicy</code></pre>
+        <p>This creates <code>app/policies/PostPolicy.go</code>:</p>
+        <pre><code><span class="keyword">package</span> policies
+
+<span class="keyword">import</span> <span class="string">"app/models"</span>
+
+<span class="keyword">type</span> <span class="type">PostPolicy</span> <span class="keyword">struct</span>{}
+
+<span class="keyword">func</span> (p *PostPolicy) <span class="function">View</span>(user *models.User, post *models.Post) <span class="type">bool</span> {
+    <span class="keyword">return</span> <span class="keyword">true</span> <span class="comment">// Anyone can view</span>
+}
+
+<span class="keyword">func</span> (p *PostPolicy) <span class="function">Update</span>(user *models.User, post *models.Post) <span class="type">bool</span> {
+    <span class="keyword">return</span> user.ID == post.UserID
+}
+
+<span class="keyword">func</span> (p *PostPolicy) <span class="function">Delete</span>(user *models.User, post *models.Post) <span class="type">bool</span> {
+    <span class="keyword">return</span> user.ID == post.UserID || user.IsAdmin
+}
+
+<span class="keyword">func</span> (p *PostPolicy) <span class="function">Create</span>(user *models.User) <span class="type">bool</span> {
+    <span class="keyword">return</span> user.Active <span class="comment">// Only active users can create</span>
+}</code></pre>
+
+        <h3>Registering Policies</h3>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/gate"</span>
+
+gate.<span class="function">Policy</span>(&Post{}, &PostPolicy{})</code></pre>
+
+        <h3>Using Policies</h3>
+        <pre><code><span class="comment">// Check via gate</span>
+<span class="keyword">if</span> gate.<span class="function">Allows</span>(<span class="string">"update"</span>, post) {
+    <span class="comment">// User can update</span>
+}
+
+<span class="comment">// Check via user model</span>
+<span class="keyword">if</span> user.<span class="function">Can</span>(<span class="string">"update"</span>, post) {
+    <span class="comment">// User can update</span>
+}
+
+<span class="comment">// Authorize or throw</span>
+user.<span class="function">Authorize</span>(<span class="string">"update"</span>, post)</code></pre>
+
+        <h3>Policy Middleware</h3>
+        <pre><code>router.
+    <span class="function">Put</span>(<span class="string">"/posts/{id}"</span>, updatePostHandler).
+    <span class="function">Middleware</span>(middleware.<span class="function">Can</span>(<span class="string">"update"</span>, <span class="string">"post"</span>))</code></pre>
+      </section>
+
+      <!-- Email Verification -->
+      <section class="section">
+        <h2 class="section-title">Email Verification</h2>
+        <p>Require users to verify their email addresses:</p>
+        <pre><code><span class="comment">// User model</span>
+<span class="keyword">type</span> <span class="type">User</span> <span class="keyword">struct</span> {
+    orm.Model
+    EmailVerifiedAt *time.Time
+}
+
+<span class="comment">// Implement email verifiable</span>
+<span class="keyword">func</span> (u *User) <span class="function">HasVerifiedEmail</span>() <span class="type">bool</span> {
+    <span class="keyword">return</span> u.EmailVerifiedAt != <span class="keyword">nil</span>
+}
+
+<span class="keyword">func</span> (u *User) <span class="function">MarkEmailAsVerified</span>() {
+    now := time.<span class="function">Now</span>()
+    u.EmailVerifiedAt = &now
+    database.<span class="function">Save</span>(u)
+}
+
+<span class="comment">// Protect routes</span>
+router.
+    <span class="function">Get</span>(<span class="string">"/dashboard"</span>, dashboardHandler).
+    <span class="function">Middleware</span>(middleware.<span class="function">Verified</span>())</code></pre>
+      </section>
+
+      <!-- Password Reset -->
+      <section class="section">
+        <h2 class="section-title">Password Reset</h2>
+        <p>Send password reset links via email:</p>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/auth"</span>
+
+<span class="comment">// Send reset link</span>
+auth.<span class="function">SendPasswordResetLink</span>(email)
+
+<span class="comment">// Reset password</span>
+err := auth.<span class="function">ResetPassword</span>(token, email, newPassword)
+<span class="keyword">if</span> err != <span class="keyword">nil</span> {
+    <span class="comment">// Invalid token or expired</span>
+}</code></pre>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

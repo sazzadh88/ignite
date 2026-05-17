@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database - Ignite</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>Ignite</h1>
+        <div class="version">v0.1.0</div>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting Started</a></li>
+        <li><a href="routing.html">Routing</a></li>
+        <li><a href="database.html" class="active">Database</a></li>
+        <li><a href="authentication.html">Authentication</a></li>
+        <li><a href="features.html">Features</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1>Database</h1>
+      <p>Ignite provides a powerful database layer with both a fluent query builder and an Eloquent-style ORM. Supports MySQL, PostgreSQL, SQLite, and SQL Server.</p>
+
+      <!-- Configuration -->
+      <section class="section">
+        <h2 class="section-title">Configuration</h2>
+        <p>Configure your database connection in <code>.env</code>:</p>
+        <pre><code><span class="comment"># SQLite (default)</span>
+DB_CONNECTION=sqlite
+DB_DATABASE=database.db
+
+<span class="comment"># MySQL</span>
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ignite
+DB_USERNAME=root
+DB_PASSWORD=secret
+
+<span class="comment"># PostgreSQL</span>
+DB_CONNECTION=postgres
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=ignite
+DB_USERNAME=postgres
+DB_PASSWORD=secret
+DB_SSLMODE=disable</code></pre>
+      </section>
+
+      <!-- Query Builder -->
+      <section class="section">
+        <h2 class="section-title">Query Builder</h2>
+        <p>The query builder provides a fluent interface for building SQL queries:</p>
+
+        <h3>Retrieving Data</h3>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/database"</span>
+
+<span class="comment">// Get all records</span>
+users := database.<span class="function">Table</span>(<span class="string">"users"</span>).<span class="function">Get</span>()
+
+<span class="comment">// Get first record</span>
+user := database.<span class="function">Table</span>(<span class="string">"users"</span>).<span class="function">First</span>()
+
+<span class="comment">// Get specific columns</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Select</span>(<span class="string">"id"</span>, <span class="string">"name"</span>, <span class="string">"email"</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// Get single value</span>
+email := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Where</span>(<span class="string">"id"</span>, <span class="number">1</span>).
+    <span class="function">Value</span>(<span class="string">"email"</span>)
+
+<span class="comment">// Pluck a column</span>
+emails := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Pluck</span>(<span class="string">"email"</span>)</code></pre>
+
+        <h3>Where Clauses</h3>
+        <pre><code><span class="comment">// Simple where</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Where</span>(<span class="string">"status"</span>, <span class="string">"active"</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// Where with operator</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Where</span>(<span class="string">"age"</span>, <span class="string">">="</span>, <span class="number">18</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// Multiple conditions (AND)</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Where</span>(<span class="string">"status"</span>, <span class="string">"active"</span>).
+    <span class="function">Where</span>(<span class="string">"role"</span>, <span class="string">"admin"</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// OR conditions</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Where</span>(<span class="string">"role"</span>, <span class="string">"admin"</span>).
+    <span class="function">OrWhere</span>(<span class="string">"role"</span>, <span class="string">"moderator"</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// Where In</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">WhereIn</span>(<span class="string">"id"</span>, []<span class="type">int</span>{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}).
+    <span class="function">Get</span>()
+
+<span class="comment">// Where Between</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">WhereBetween</span>(<span class="string">"age"</span>, <span class="number">18</span>, <span class="number">65</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// Where Null</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">WhereNull</span>(<span class="string">"deleted_at"</span>).
+    <span class="function">Get</span>()</code></pre>
+
+        <h3>Joins</h3>
+        <pre><code><span class="comment">// Inner join</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Join</span>(<span class="string">"profiles"</span>, <span class="string">"users.id"</span>, <span class="string">"="</span>, <span class="string">"profiles.user_id"</span>).
+    <span class="function">Select</span>(<span class="string">"users.*"</span>, <span class="string">"profiles.bio"</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// Left join</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">LeftJoin</span>(<span class="string">"orders"</span>, <span class="string">"users.id"</span>, <span class="string">"="</span>, <span class="string">"orders.user_id"</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// Complex join conditions</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Join</span>(<span class="string">"contacts"</span>, <span class="keyword">func</span>(j *database.JoinClause) {
+        j.<span class="function">On</span>(<span class="string">"users.id"</span>, <span class="string">"="</span>, <span class="string">"contacts.user_id"</span>)
+        j.<span class="function">Where</span>(<span class="string">"contacts.active"</span>, <span class="keyword">true</span>)
+    }).
+    <span class="function">Get</span>()</code></pre>
+
+        <h3>Ordering & Grouping</h3>
+        <pre><code><span class="comment">// Order by</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">OrderBy</span>(<span class="string">"created_at"</span>, <span class="string">"desc"</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// Latest / Oldest</span>
+users := database.<span class="function">Table</span>(<span class="string">"users"</span>).<span class="function">Latest</span>().<span class="function">Get</span>()
+users := database.<span class="function">Table</span>(<span class="string">"users"</span>).<span class="function">Oldest</span>().<span class="function">Get</span>()
+
+<span class="comment">// Group by</span>
+stats := database.
+    <span class="function">Table</span>(<span class="string">"orders"</span>).
+    <span class="function">Select</span>(<span class="string">"user_id"</span>, database.<span class="function">Raw</span>(<span class="string">"COUNT(*) as total"</span>)).
+    <span class="function">GroupBy</span>(<span class="string">"user_id"</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// Having</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"orders"</span>).
+    <span class="function">GroupBy</span>(<span class="string">"user_id"</span>).
+    <span class="function">Having</span>(<span class="string">"COUNT(*)"</span>, <span class="string">">"</span>, <span class="number">5</span>).
+    <span class="function">Get</span>()</code></pre>
+
+        <h3>Limiting & Pagination</h3>
+        <pre><code><span class="comment">// Limit</span>
+users := database.<span class="function">Table</span>(<span class="string">"users"</span>).<span class="function">Limit</span>(<span class="number">10</span>).<span class="function">Get</span>()
+
+<span class="comment">// Offset</span>
+users := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Offset</span>(<span class="number">20</span>).
+    <span class="function">Limit</span>(<span class="number">10</span>).
+    <span class="function">Get</span>()
+
+<span class="comment">// Paginate</span>
+paginator := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Paginate</span>(<span class="number">15</span>) <span class="comment">// 15 per page</span></code></pre>
+
+        <h3>Aggregates</h3>
+        <pre><code><span class="comment">// Count</span>
+count := database.<span class="function">Table</span>(<span class="string">"users"</span>).<span class="function">Count</span>()
+
+<span class="comment">// Max, Min, Sum, Avg</span>
+max := database.<span class="function">Table</span>(<span class="string">"orders"</span>).<span class="function">Max</span>(<span class="string">"amount"</span>)
+min := database.<span class="function">Table</span>(<span class="string">"orders"</span>).<span class="function">Min</span>(<span class="string">"amount"</span>)
+sum := database.<span class="function">Table</span>(<span class="string">"orders"</span>).<span class="function">Sum</span>(<span class="string">"amount"</span>)
+avg := database.<span class="function">Table</span>(<span class="string">"orders"</span>).<span class="function">Avg</span>(<span class="string">"amount"</span>)
+
+<span class="comment">// Exists</span>
+exists := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Where</span>(<span class="string">"email"</span>, <span class="string">"john@example.com"</span>).
+    <span class="function">Exists</span>()</code></pre>
+
+        <h3>Inserts</h3>
+        <pre><code><span class="comment">// Insert single record</span>
+id := database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Insert</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+        <span class="string">"name"</span>:  <span class="string">"John Doe"</span>,
+        <span class="string">"email"</span>: <span class="string">"john@example.com"</span>,
+    })
+
+<span class="comment">// Insert multiple records</span>
+database.<span class="function">Table</span>(<span class="string">"users"</span>).<span class="function">Insert</span>([]<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+    {<span class="string">"name"</span>: <span class="string">"John"</span>, <span class="string">"email"</span>: <span class="string">"john@example.com"</span>},
+    {<span class="string">"name"</span>: <span class="string">"Jane"</span>, <span class="string">"email"</span>: <span class="string">"jane@example.com"</span>},
+})</code></pre>
+
+        <h3>Updates</h3>
+        <pre><code><span class="comment">// Update records</span>
+database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Where</span>(<span class="string">"id"</span>, <span class="number">1</span>).
+    <span class="function">Update</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+        <span class="string">"name"</span>: <span class="string">"John Updated"</span>,
+    })
+
+<span class="comment">// Increment / Decrement</span>
+database.<span class="function">Table</span>(<span class="string">"posts"</span>).<span class="function">Where</span>(<span class="string">"id"</span>, <span class="number">1</span>).<span class="function">Increment</span>(<span class="string">"views"</span>)
+database.<span class="function">Table</span>(<span class="string">"products"</span>).<span class="function">Where</span>(<span class="string">"id"</span>, <span class="number">1</span>).<span class="function">Decrement</span>(<span class="string">"stock"</span>, <span class="number">5</span>)</code></pre>
+
+        <h3>Deletes</h3>
+        <pre><code><span class="comment">// Delete records</span>
+database.
+    <span class="function">Table</span>(<span class="string">"users"</span>).
+    <span class="function">Where</span>(<span class="string">"id"</span>, <span class="number">1</span>).
+    <span class="function">Delete</span>()
+
+<span class="comment">// Truncate table</span>
+database.<span class="function">Table</span>(<span class="string">"sessions"</span>).<span class="function">Truncate</span>()</code></pre>
+      </section>
+
+      <!-- ORM (Eloquent) -->
+      <section class="section">
+        <h2 class="section-title">ORM (Eloquent)</h2>
+        <p>Ignite's ORM provides an elegant ActiveRecord implementation for working with your database:</p>
+
+        <h3>Defining Models</h3>
+        <pre><code><span class="keyword">package</span> models
+
+<span class="keyword">import</span> (
+    <span class="string">"github.com/sazzad/ignite/orm"</span>
+    <span class="string">"time"</span>
+)
+
+<span class="keyword">type</span> <span class="type">User</span> <span class="keyword">struct</span> {
+    orm.Model
+    Name      <span class="type">string</span>
+    Email     <span class="type">string</span>
+    Password  <span class="type">string</span>
+    Age       <span class="type">int</span>
+    Active    <span class="type">bool</span>
+    Posts     []Post
+    Profile   *Profile
+    CreatedAt time.Time
+    UpdatedAt time.Time
+}
+
+<span class="comment">// Specify table name (optional)</span>
+<span class="keyword">func</span> (User) <span class="function">TableName</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> <span class="string">"users"</span>
+}</code></pre>
+
+        <h3>Retrieving Models</h3>
+        <pre><code><span class="comment">// Find by primary key</span>
+<span class="keyword">var</span> user User
+database.<span class="function">Find</span>(&user, <span class="number">1</span>)
+
+<span class="comment">// Find with conditions</span>
+<span class="keyword">var</span> user User
+database.<span class="function">Where</span>(<span class="string">"email = ?"</span>, <span class="string">"john@example.com"</span>).<span class="function">First</span>(&user)
+
+<span class="comment">// Get all records</span>
+<span class="keyword">var</span> users []User
+database.<span class="function">Find</span>(&users)
+
+<span class="comment">// With query builder methods</span>
+<span class="keyword">var</span> users []User
+database.
+    <span class="function">Where</span>(<span class="string">"active = ?"</span>, <span class="keyword">true</span>).
+    <span class="function">Order</span>(<span class="string">"created_at desc"</span>).
+    <span class="function">Limit</span>(<span class="number">10</span>).
+    <span class="function">Find</span>(&users)</code></pre>
+
+        <h3>Creating Models</h3>
+        <pre><code>user := User{
+    Name:  <span class="string">"John Doe"</span>,
+    Email: <span class="string">"john@example.com"</span>,
+    Age:   <span class="number">30</span>,
+}
+database.<span class="function">Create</span>(&user)
+
+<span class="comment">// user.ID is now populated</span></code></pre>
+
+        <h3>Updating Models</h3>
+        <pre><code><span class="keyword">var</span> user User
+database.<span class="function">Find</span>(&user, <span class="number">1</span>)
+
+<span class="comment">// Update single field</span>
+database.<span class="function">Model</span>(&user).<span class="function">Update</span>(<span class="string">"name"</span>, <span class="string">"John Updated"</span>)
+
+<span class="comment">// Update multiple fields</span>
+database.<span class="function">Model</span>(&user).<span class="function">Updates</span>(User{
+    Name: <span class="string">"John Updated"</span>,
+    Age:  <span class="number">31</span>,
+})
+
+<span class="comment">// Save (updates all fields)</span>
+user.Name = <span class="string">"John Updated"</span>
+database.<span class="function">Save</span>(&user)</code></pre>
+
+        <h3>Deleting Models</h3>
+        <pre><code><span class="keyword">var</span> user User
+database.<span class="function">Find</span>(&user, <span class="number">1</span>)
+database.<span class="function">Delete</span>(&user)
+
+<span class="comment">// Soft deletes (if using soft delete trait)</span>
+database.<span class="function">Delete</span>(&user) <span class="comment">// Sets deleted_at</span>
+
+<span class="comment">// Force delete (permanent)</span>
+database.<span class="function">Unscoped</span>().<span class="function">Delete</span>(&user)</code></pre>
+
+        <h3>Relationships</h3>
+        <pre><code><span class="comment">// One-to-One</span>
+<span class="keyword">type</span> <span class="type">User</span> <span class="keyword">struct</span> {
+    orm.Model
+    Profile *Profile <span class="comment">`gorm:"foreignKey:UserID"`</span>
+}
+
+<span class="comment">// One-to-Many</span>
+<span class="keyword">type</span> <span class="type">User</span> <span class="keyword">struct</span> {
+    orm.Model
+    Posts []Post <span class="comment">`gorm:"foreignKey:UserID"`</span>
+}
+
+<span class="comment">// Many-to-Many</span>
+<span class="keyword">type</span> <span class="type">User</span> <span class="keyword">struct</span> {
+    orm.Model
+    Roles []Role <span class="comment">`gorm:"many2many:user_roles;"`</span>
+}
+
+<span class="comment">// Eager loading</span>
+<span class="keyword">var</span> user User
+database.<span class="function">Preload</span>(<span class="string">"Posts"</span>).<span class="function">First</span>(&user, <span class="number">1</span>)
+
+<span class="comment">// Nested eager loading</span>
+database.<span class="function">Preload</span>(<span class="string">"Posts.Comments"</span>).<span class="function">First</span>(&user, <span class="number">1</span>)</code></pre>
+
+        <h3>Scopes</h3>
+        <pre><code><span class="comment">// Define scope</span>
+<span class="keyword">func</span> <span class="function">ActiveUsers</span>(db *orm.DB) *orm.DB {
+    <span class="keyword">return</span> db.<span class="function">Where</span>(<span class="string">"active = ?"</span>, <span class="keyword">true</span>)
+}
+
+<span class="keyword">func</span> <span class="function">RecentUsers</span>(db *orm.DB) *orm.DB {
+    <span class="keyword">return</span> db.<span class="function">Where</span>(<span class="string">"created_at > ?"</span>, time.<span class="function">Now</span>().<span class="function">AddDate</span>(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">30</span>))
+}
+
+<span class="comment">// Use scopes</span>
+<span class="keyword">var</span> users []User
+database.
+    <span class="function">Scopes</span>(ActiveUsers, RecentUsers).
+    <span class="function">Find</span>(&users)</code></pre>
+      </section>
+
+      <!-- Migrations -->
+      <section class="section">
+        <h2 class="section-title">Migrations</h2>
+        <p>Migrations provide version control for your database schema:</p>
+
+        <h3>Creating Migrations</h3>
+        <pre><code>ignite make:migration create_users_table</code></pre>
+
+        <h3>Migration Structure</h3>
+        <pre><code><span class="keyword">package</span> migrations
+
+<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/schema"</span>
+
+<span class="keyword">func</span> <span class="function">CreateUsersTable</span>() *schema.Migration {
+    <span class="keyword">return</span> &schema.Migration{
+        Up: <span class="keyword">func</span>(s *schema.Schema) {
+            s.<span class="function">Create</span>(<span class="string">"users"</span>, <span class="keyword">func</span>(t *schema.Blueprint) {
+                t.<span class="function">ID</span>()
+                t.<span class="function">String</span>(<span class="string">"name"</span>)
+                t.<span class="function">String</span>(<span class="string">"email"</span>).<span class="function">Unique</span>()
+                t.<span class="function">String</span>(<span class="string">"password"</span>)
+                t.<span class="function">Integer</span>(<span class="string">"age"</span>).<span class="function">Nullable</span>()
+                t.<span class="function">Boolean</span>(<span class="string">"active"</span>).<span class="function">Default</span>(<span class="keyword">true</span>)
+                t.<span class="function">Timestamps</span>()
+            })
+        },
+        Down: <span class="keyword">func</span>(s *schema.Schema) {
+            s.<span class="function">DropIfExists</span>(<span class="string">"users"</span>)
+        },
+    }
+}</code></pre>
+
+        <h3>Available Column Types</h3>
+        <pre><code>t.<span class="function">ID</span>()                           <span class="comment">// Auto-incrementing primary key</span>
+t.<span class="function">String</span>(<span class="string">"name"</span>)                  <span class="comment">// VARCHAR(255)</span>
+t.<span class="function">Text</span>(<span class="string">"description"</span>)           <span class="comment">// TEXT</span>
+t.<span class="function">Integer</span>(<span class="string">"age"</span>)                 <span class="comment">// INTEGER</span>
+t.<span class="function">BigInteger</span>(<span class="string">"views"</span>)            <span class="comment">// BIGINT</span>
+t.<span class="function">Float</span>(<span class="string">"price"</span>)                 <span class="comment">// FLOAT</span>
+t.<span class="function">Decimal</span>(<span class="string">"amount"</span>, <span class="number">8</span>, <span class="number">2</span>)         <span class="comment">// DECIMAL(8,2)</span>
+t.<span class="function">Boolean</span>(<span class="string">"active"</span>)              <span class="comment">// BOOLEAN</span>
+t.<span class="function">Date</span>(<span class="string">"birth_date"</span>)            <span class="comment">// DATE</span>
+t.<span class="function">DateTime</span>(<span class="string">"published_at"</span>)       <span class="comment">// DATETIME</span>
+t.<span class="function">Timestamp</span>(<span class="string">"created_at"</span>)        <span class="comment">// TIMESTAMP</span>
+t.<span class="function">JSON</span>(<span class="string">"metadata"</span>)              <span class="comment">// JSON</span>
+t.<span class="function">Timestamps</span>()                    <span class="comment">// created_at + updated_at</span>
+t.<span class="function">SoftDeletes</span>()                   <span class="comment">// deleted_at</span></code></pre>
+
+        <h3>Running Migrations</h3>
+        <pre><code><span class="comment"># Run all pending migrations</span>
+ignite migrate
+
+<span class="comment"># Rollback last migration</span>
+ignite migrate:rollback
+
+<span class="comment"># Rollback all migrations</span>
+ignite migrate:reset
+
+<span class="comment"># Rollback and re-run all migrations</span>
+ignite migrate:refresh
+
+<span class="comment"># Drop all tables and re-run migrations</span>
+ignite migrate:fresh</code></pre>
+      </section>
+
+      <!-- Transactions -->
+      <section class="section">
+        <h2 class="section-title">Transactions</h2>
+        <p>Execute operations within a database transaction:</p>
+        <pre><code>err := database.<span class="function">Transaction</span>(<span class="keyword">func</span>(tx *database.DB) <span class="type">error</span> {
+    <span class="comment">// Create user</span>
+    user := User{Name: <span class="string">"John"</span>, Email: <span class="string">"john@example.com"</span>}
+    <span class="keyword">if</span> err := tx.<span class="function">Create</span>(&user).<span class="function">Error</span>; err != <span class="keyword">nil</span> {
+        <span class="keyword">return</span> err <span class="comment">// Rollback</span>
+    }
+
+    <span class="comment">// Create profile</span>
+    profile := Profile{UserID: user.ID, Bio: <span class="string">"..."</span>}
+    <span class="keyword">if</span> err := tx.<span class="function">Create</span>(&profile).<span class="function">Error</span>; err != <span class="keyword">nil</span> {
+        <span class="keyword">return</span> err <span class="comment">// Rollback</span>
+    }
+
+    <span class="keyword">return</span> <span class="keyword">nil</span> <span class="comment">// Commit</span>
+})
+
+<span class="keyword">if</span> err != <span class="keyword">nil</span> {
+    <span class="comment">// Transaction failed and was rolled back</span>
+}</code></pre>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

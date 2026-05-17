@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ignite - Laravel for Go Developers</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>Ignite</h1>
+        <div class="version">v0.1.0</div>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="getting-started.html">Getting Started</a></li>
+        <li><a href="routing.html">Routing</a></li>
+        <li><a href="database.html">Database</a></li>
+        <li><a href="authentication.html">Authentication</a></li>
+        <li><a href="features.html">Features</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Hero Section -->
+      <div class="hero">
+        <h1>Ignite</h1>
+        <p class="tagline">Laravel for Go Developers</p>
+        <div class="version-badge">v0.1.0 - 34 packages - 812 tests passing</div>
+      </div>
+
+      <!-- Features Grid -->
+      <section class="section">
+        <h2 class="section-title">Why Ignite?</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="icon">🚀</div>
+            <h3>Expressive & Elegant</h3>
+            <p>Beautiful, Laravel-inspired syntax that makes Go web development a joy. Write less boilerplate, ship faster.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="icon">🗄️</div>
+            <h3>Powerful ORM</h3>
+            <p>Fluent query builder, Eloquent-style models, eager loading, scopes, observers, and relationships that just work.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="icon">🛣️</div>
+            <h3>Intuitive Routing</h3>
+            <p>Expressive route definitions with parameter binding, middleware, groups, resource routes, and domain routing.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="icon">🔐</div>
+            <h3>Built-in Authentication</h3>
+            <p>Session and token guards, password hashing, API tokens, plus Gates and Policies for authorization.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="icon">⚡</div>
+            <h3>Queue & Jobs</h3>
+            <p>Background job processing with multiple drivers, job chaining, batches, retries, and rate limiting.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="icon">📦</div>
+            <h3>Cache & Session</h3>
+            <p>Unified cache interface with multiple drivers, cache tags, locks, and flexible session management.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="icon">✉️</div>
+            <h3>Mail & Notifications</h3>
+            <p>Send emails and notifications across multiple channels with mailables, templates, and queueable delivery.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="icon">⏰</div>
+            <h3>Task Scheduling</h3>
+            <p>Cron-style task scheduler with frequency helpers, chaining, and overlap prevention built right in.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Start -->
+      <section class="section">
+        <h2 class="section-title">Quick Start</h2>
+        <div class="quick-start">
+          <h3>Get up and running in 60 seconds</h3>
+          <pre><code><span class="comment"># Install the CLI</span>
+go install github.com/sazzad/ignite/cmd/ignite@latest
+
+<span class="comment"># Create a new project</span>
+ignite new myapp
+
+<span class="comment"># Navigate into your project</span>
+cd myapp
+
+<span class="comment"># Start the development server</span>
+ignite serve</code></pre>
+          <p>Your app is now running at <code>http://localhost:8000</code></p>
+        </div>
+      </section>
+
+      <!-- Code Example -->
+      <section class="section">
+        <h2 class="section-title">Beautiful, Expressive Code</h2>
+        <p>Ignite brings Laravel's elegance to Go. Here's a taste of what you can build:</p>
+
+        <h3>Define Routes</h3>
+        <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"github.com/sazzad/ignite/http"</span>
+    <span class="string">"github.com/sazzad/ignite/routing"</span>
+)
+
+<span class="keyword">func</span> <span class="function">main</span>() {
+    router := routing.<span class="function">New</span>()
+
+    <span class="comment">// Simple routes</span>
+    router.<span class="function">Get</span>(<span class="string">"/users"</span>, <span class="function">listUsers</span>)
+    router.<span class="function">Post</span>(<span class="string">"/users"</span>, <span class="function">createUser</span>)
+
+    <span class="comment">// Route groups with middleware</span>
+    router.<span class="function">Group</span>(<span class="function">func</span>(r *routing.Router) {
+        r.<span class="function">Middleware</span>(middleware.<span class="function">Auth</span>())
+        r.<span class="function">Get</span>(<span class="string">"/dashboard"</span>, <span class="function">dashboard</span>)
+        r.<span class="function">Resource</span>(<span class="string">"/posts"</span>, &PostController{})
+    })
+
+    http.<span class="function">Serve</span>(<span class="string">":8000"</span>, router)
+}</code></pre>
+
+        <h3>Query the Database</h3>
+        <pre><code><span class="keyword">package</span> controllers
+
+<span class="keyword">import</span> (
+    <span class="string">"github.com/sazzad/ignite/database"</span>
+    <span class="string">"github.com/sazzad/ignite/http"</span>
+)
+
+<span class="keyword">func</span> <span class="function">listUsers</span>(req *http.Request) *http.Response {
+    <span class="comment">// Fluent query builder</span>
+    users := database.
+        <span class="function">Table</span>(<span class="string">"users"</span>).
+        <span class="function">Where</span>(<span class="string">"active"</span>, <span class="keyword">true</span>).
+        <span class="function">OrderBy</span>(<span class="string">"created_at"</span>, <span class="string">"desc"</span>).
+        <span class="function">Limit</span>(<span class="number">10</span>).
+        <span class="function">Get</span>()
+
+    <span class="keyword">return</span> req.<span class="function">JSON</span>(users)
+}
+
+<span class="keyword">func</span> <span class="function">getUserWithPosts</span>(req *http.Request) *http.Response {
+    <span class="comment">// ORM with eager loading</span>
+    <span class="keyword">var</span> user User
+    database.
+        <span class="function">Model</span>(&user).
+        <span class="function">With</span>(<span class="string">"Posts.Comments"</span>).
+        <span class="function">Find</span>(req.<span class="function">Param</span>(<span class="string">"id"</span>))
+
+    <span class="keyword">return</span> req.<span class="function">JSON</span>(user)
+}</code></pre>
+
+        <h3>Process Background Jobs</h3>
+        <pre><code><span class="keyword">package</span> jobs
+
+<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/queue"</span>
+
+<span class="keyword">type</span> <span class="type">SendWelcomeEmail</span> <span class="keyword">struct</span> {
+    UserID <span class="type">int</span>
+}
+
+<span class="keyword">func</span> (j *SendWelcomeEmail) <span class="function">Handle</span>() <span class="type">error</span> {
+    <span class="comment">// Send email logic here</span>
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="comment">// Dispatch the job</span>
+queue.<span class="function">Dispatch</span>(&SendWelcomeEmail{UserID: <span class="number">123</span>})
+
+<span class="comment">// Chain jobs together</span>
+queue.
+    <span class="function">Chain</span>(
+        &ProcessPayment{OrderID: <span class="number">456</span>},
+        &SendReceipt{OrderID: <span class="number">456</span>},
+        &NotifyWarehouse{OrderID: <span class="number">456</span>},
+    ).
+    <span class="function">Dispatch</span>()</code></pre>
+      </section>
+
+      <!-- What's Included -->
+      <section class="section">
+        <h2 class="section-title">Batteries Included</h2>
+        <p>Ignite comes with everything you need to build modern web applications:</p>
+        <ul>
+          <li><strong>Routing:</strong> Expressive routes, middleware, groups, resource routes, domain routing</li>
+          <li><strong>Database:</strong> Query builder, ORM with relationships, migrations, transactions, seeders</li>
+          <li><strong>Authentication:</strong> Guards (session, token), password hashing, API tokens, Gates, Policies</li>
+          <li><strong>Validation:</strong> 50+ built-in rules, custom rules, Form Requests</li>
+          <li><strong>Cache:</strong> Memory, Redis, file drivers with tags, locks, and atomic operations</li>
+          <li><strong>Queue:</strong> Background jobs, workers, chains, batches, retries, rate limiting</li>
+          <li><strong>Events:</strong> Event dispatcher, listeners, subscribers, async processing</li>
+          <li><strong>Mail:</strong> Mailables, multiple transports (SMTP, SES, Mailgun), queueable</li>
+          <li><strong>Notifications:</strong> Multi-channel notifications (mail, SMS, Slack, database)</li>
+          <li><strong>Scheduling:</strong> Cron-style task scheduler with frequency helpers</li>
+          <li><strong>HTTP Client:</strong> Fluent HTTP requests with retries, middleware, and macros</li>
+          <li><strong>Broadcasting:</strong> WebSocket and SSE support for real-time features</li>
+          <li><strong>Rate Limiting:</strong> Flexible rate limiters for APIs and routes</li>
+          <li><strong>File Storage:</strong> Local and S3 storage with unified interface</li>
+        </ul>
+      </section>
+
+      <!-- Get Started -->
+      <section class="section">
+        <h2 class="section-title">Ready to Build?</h2>
+        <p>Dive into the documentation and start building your next Go application with Ignite.</p>
+        <p><a href="getting-started.html" style="font-size: 1.1rem; font-weight: 600;">Read the Getting Started Guide →</a></p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Started - Ignite</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>Ignite</h1>
+        <div class="version">v0.1.0</div>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html" class="active">Getting Started</a></li>
+        <li><a href="routing.html">Routing</a></li>
+        <li><a href="database.html">Database</a></li>
+        <li><a href="authentication.html">Authentication</a></li>
+        <li><a href="features.html">Features</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1>Getting Started</h1>
+      <p>Get up and running with Ignite in just a few minutes. This guide will walk you through installation, creating your first project, and understanding the framework structure.</p>
+
+      <!-- Installation -->
+      <section class="section">
+        <h2 class="section-title">Installation</h2>
+        <p>Ignite requires Go 1.26.3 or higher. Install the Ignite CLI using Go's package manager:</p>
+        <pre><code>go install github.com/sazzad/ignite/cmd/ignite@latest</code></pre>
+        <p>Verify the installation:</p>
+        <pre><code>ignite --version</code></pre>
+        <p>You should see: <code>Ignite CLI v0.1.0</code></p>
+      </section>
+
+      <!-- Creating a Project -->
+      <section class="section">
+        <h2 class="section-title">Creating Your First Project</h2>
+        <p>Create a new Ignite project using the CLI:</p>
+        <pre><code>ignite new myapp</code></pre>
+        <p>This command creates a new directory called <code>myapp</code> with a complete project structure. Navigate into your project:</p>
+        <pre><code>cd myapp</code></pre>
+      </section>
+
+      <!-- Project Structure -->
+      <section class="section">
+        <h2 class="section-title">Project Structure</h2>
+        <p>Ignite follows Laravel's organizational conventions. Here's what you'll find in a new project:</p>
+        <pre><code>myapp/
+├── app/
+│   ├── controllers/      <span class="comment"># HTTP controllers</span>
+│   │   └── HomeController.go
+│   ├── models/          <span class="comment"># Database models</span>
+│   │   └── User.go
+│   ├── middleware/      <span class="comment"># HTTP middleware</span>
+│   │   └── Authenticate.go
+│   ├── jobs/           <span class="comment"># Background jobs</span>
+│   │   └── ProcessPayment.go
+│   ├── policies/       <span class="comment"># Authorization policies</span>
+│   │   └── PostPolicy.go
+│   └── requests/       <span class="comment"># Form request validation</span>
+│       └── CreateUserRequest.go
+├── config/
+│   ├── app.go          <span class="comment"># Application config</span>
+│   ├── database.go     <span class="comment"># Database config</span>
+│   └── cache.go        <span class="comment"># Cache config</span>
+├── database/
+│   ├── migrations/     <span class="comment"># Database migrations</span>
+│   │   └── 2026_05_17_create_users_table.go
+│   └── seeders/       <span class="comment"># Database seeders</span>
+│       └── UserSeeder.go
+├── routes/
+│   ├── web.go         <span class="comment"># Web routes</span>
+│   └── api.go         <span class="comment"># API routes</span>
+├── resources/
+│   ├── views/         <span class="comment"># HTML templates</span>
+│   └── assets/        <span class="comment"># Static assets</span>
+├── storage/
+│   ├── logs/          <span class="comment"># Application logs</span>
+│   └── uploads/       <span class="comment"># File uploads</span>
+├── .env               <span class="comment"># Environment variables</span>
+├── go.mod
+└── main.go            <span class="comment"># Application entry point</span></code></pre>
+      </section>
+
+      <!-- Configuration -->
+      <section class="section">
+        <h2 class="section-title">Configuration</h2>
+        <p>Ignite uses environment variables for configuration. The <code>.env</code> file in your project root contains all configuration values:</p>
+        <pre><code><span class="comment"># Application</span>
+APP_NAME=MyApp
+APP_ENV=development
+APP_KEY=base64:YOUR_APP_KEY_HERE
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+<span class="comment"># Database</span>
+DB_CONNECTION=sqlite
+DB_DATABASE=database.db
+
+<span class="comment"># Cache</span>
+CACHE_DRIVER=memory
+
+<span class="comment"># Queue</span>
+QUEUE_DRIVER=memory
+
+<span class="comment"># Mail</span>
+MAIL_DRIVER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_FROM_ADDRESS=hello@example.com
+MAIL_FROM_NAME=MyApp</code></pre>
+        <p><strong>Important:</strong> Never commit your <code>.env</code> file to version control. It contains sensitive credentials.</p>
+
+        <h3>Generating an Application Key</h3>
+        <p>Your application key is used for encryption. Generate a secure key with:</p>
+        <pre><code>ignite key:generate</code></pre>
+      </section>
+
+      <!-- Running the Server -->
+      <section class="section">
+        <h2 class="section-title">Running the Development Server</h2>
+        <p>Start the built-in development server:</p>
+        <pre><code>ignite serve</code></pre>
+        <p>By default, your application will be available at <code>http://localhost:8000</code>. You can specify a different port:</p>
+        <pre><code>ignite serve --port=3000</code></pre>
+        <p>The development server includes hot-reloading, so your changes will be reflected immediately.</p>
+      </section>
+
+      <!-- Your First Route -->
+      <section class="section">
+        <h2 class="section-title">Your First Route</h2>
+        <p>Let's create a simple route. Open <code>routes/web.go</code> and add:</p>
+        <pre><code><span class="keyword">package</span> routes
+
+<span class="keyword">import</span> (
+    <span class="string">"github.com/sazzad/ignite/http"</span>
+    <span class="string">"github.com/sazzad/ignite/routing"</span>
+)
+
+<span class="keyword">func</span> <span class="function">RegisterWebRoutes</span>(router *routing.Router) {
+    <span class="comment">// Welcome page</span>
+    router.<span class="function">Get</span>(<span class="string">"/"</span>, <span class="keyword">func</span>(req *http.Request) *http.Response {
+        <span class="keyword">return</span> req.<span class="function">JSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+            <span class="string">"message"</span>: <span class="string">"Welcome to Ignite!"</span>,
+            <span class="string">"version"</span>: <span class="string">"0.1.0"</span>,
+        })
+    })
+
+    <span class="comment">// Hello route with parameter</span>
+    router.<span class="function">Get</span>(<span class="string">"/hello/{name}"</span>, <span class="keyword">func</span>(req *http.Request) *http.Response {
+        name := req.<span class="function">Param</span>(<span class="string">"name"</span>)
+        <span class="keyword">return</span> req.<span class="function">JSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+            <span class="string">"greeting"</span>: <span class="string">"Hello, "</span> + name + <span class="string">"!"</span>,
+        })
+    })
+}</code></pre>
+        <p>Visit <code>http://localhost:8000/hello/World</code> and you'll see:</p>
+        <pre><code>{
+  <span class="string">"greeting"</span>: <span class="string">"Hello, World!"</span>
+}</code></pre>
+      </section>
+
+      <!-- Your First Controller -->
+      <section class="section">
+        <h2 class="section-title">Your First Controller</h2>
+        <p>Controllers help organize request handling logic. Create a new controller:</p>
+        <pre><code>ignite make:controller UserController</code></pre>
+        <p>This creates <code>app/controllers/UserController.go</code>:</p>
+        <pre><code><span class="keyword">package</span> controllers
+
+<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/http"</span>
+
+<span class="keyword">type</span> <span class="type">UserController</span> <span class="keyword">struct</span>{}
+
+<span class="comment">// GET /users</span>
+<span class="keyword">func</span> (c *UserController) <span class="function">Index</span>(req *http.Request) *http.Response {
+    <span class="keyword">return</span> req.<span class="function">JSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+        <span class="string">"message"</span>: <span class="string">"List of users"</span>,
+    })
+}
+
+<span class="comment">// GET /users/{id}</span>
+<span class="keyword">func</span> (c *UserController) <span class="function">Show</span>(req *http.Request) *http.Response {
+    id := req.<span class="function">Param</span>(<span class="string">"id"</span>)
+    <span class="keyword">return</span> req.<span class="function">JSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+        <span class="string">"id"</span>: id,
+        <span class="string">"message"</span>: <span class="string">"User details"</span>,
+    })
+}
+
+<span class="comment">// POST /users</span>
+<span class="keyword">func</span> (c *UserController) <span class="function">Store</span>(req *http.Request) *http.Response {
+    <span class="comment">// Create user logic</span>
+    <span class="keyword">return</span> req.<span class="function">JSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+        <span class="string">"message"</span>: <span class="string">"User created"</span>,
+    })
+}</code></pre>
+        <p>Register the controller in <code>routes/web.go</code>:</p>
+        <pre><code>router.<span class="function">Resource</span>(<span class="string">"/users"</span>, &controllers.UserController{})</code></pre>
+        <p>This automatically registers all RESTful routes for your controller.</p>
+      </section>
+
+      <!-- Database Setup -->
+      <section class="section">
+        <h2 class="section-title">Database Setup</h2>
+        <p>Ignite comes with SQLite configured by default. To use a different database, update your <code>.env</code> file:</p>
+
+        <h3>MySQL</h3>
+        <pre><code>DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=myapp
+DB_USERNAME=root
+DB_PASSWORD=</code></pre>
+
+        <h3>PostgreSQL</h3>
+        <pre><code>DB_CONNECTION=postgres
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=myapp
+DB_USERNAME=postgres
+DB_PASSWORD=</code></pre>
+
+        <p>Run migrations to set up your database schema:</p>
+        <pre><code>ignite migrate</code></pre>
+      </section>
+
+      <!-- CLI Commands -->
+      <section class="section">
+        <h2 class="section-title">Useful CLI Commands</h2>
+        <p>Ignite includes a powerful CLI for scaffolding and managing your application:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>ignite new [name]</code></td>
+              <td>Create a new project</td>
+            </tr>
+            <tr>
+              <td><code>ignite serve</code></td>
+              <td>Start development server</td>
+            </tr>
+            <tr>
+              <td><code>ignite make:controller [name]</code></td>
+              <td>Create a controller</td>
+            </tr>
+            <tr>
+              <td><code>ignite make:model [name]</code></td>
+              <td>Create a model</td>
+            </tr>
+            <tr>
+              <td><code>ignite make:migration [name]</code></td>
+              <td>Create a migration</td>
+            </tr>
+            <tr>
+              <td><code>ignite make:middleware [name]</code></td>
+              <td>Create middleware</td>
+            </tr>
+            <tr>
+              <td><code>ignite migrate</code></td>
+              <td>Run database migrations</td>
+            </tr>
+            <tr>
+              <td><code>ignite migrate:rollback</code></td>
+              <td>Rollback last migration</td>
+            </tr>
+            <tr>
+              <td><code>ignite db:seed</code></td>
+              <td>Seed the database</td>
+            </tr>
+            <tr>
+              <td><code>ignite queue:work</code></td>
+              <td>Start queue worker</td>
+            </tr>
+            <tr>
+              <td><code>ignite schedule:run</code></td>
+              <td>Run scheduled tasks</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Next Steps -->
+      <section class="section">
+        <h2 class="section-title">Next Steps</h2>
+        <p>Now that you have Ignite installed and running, here's what to explore next:</p>
+        <ul>
+          <li><a href="routing.html">Learn about Routing</a> - Define routes, middleware, and route groups</li>
+          <li><a href="database.html">Work with Databases</a> - Query builder, ORM, migrations</li>
+          <li><a href="authentication.html">Add Authentication</a> - Secure your application</li>
+          <li><a href="features.html">Explore Features</a> - Cache, queue, events, mail, and more</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

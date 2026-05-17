@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Routing - Ignite</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>Ignite</h1>
+        <div class="version">v0.1.0</div>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting Started</a></li>
+        <li><a href="routing.html" class="active">Routing</a></li>
+        <li><a href="database.html">Database</a></li>
+        <li><a href="authentication.html">Authentication</a></li>
+        <li><a href="features.html">Features</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1>Routing</h1>
+      <p>Ignite's routing system provides an expressive, elegant way to define your application's URL structure. Inspired by Laravel, it supports all modern routing patterns including RESTful resources, middleware, route groups, and more.</p>
+
+      <!-- Basic Routing -->
+      <section class="section">
+        <h2 class="section-title">Basic Routing</h2>
+        <p>The most basic routes accept a URI and a handler function:</p>
+        <pre><code><span class="keyword">package</span> routes
+
+<span class="keyword">import</span> (
+    <span class="string">"github.com/sazzad/ignite/http"</span>
+    <span class="string">"github.com/sazzad/ignite/routing"</span>
+)
+
+<span class="keyword">func</span> <span class="function">RegisterRoutes</span>(router *routing.Router) {
+    router.<span class="function">Get</span>(<span class="string">"/"</span>, <span class="keyword">func</span>(req *http.Request) *http.Response {
+        <span class="keyword">return</span> req.<span class="function">View</span>(<span class="string">"welcome"</span>)
+    })
+
+    router.<span class="function">Post</span>(<span class="string">"/submit"</span>, <span class="keyword">func</span>(req *http.Request) *http.Response {
+        <span class="keyword">return</span> req.<span class="function">JSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{<span class="string">"status"</span>: <span class="string">"success"</span>})
+    })
+}</code></pre>
+
+        <h3>Available HTTP Methods</h3>
+        <pre><code>router.<span class="function">Get</span>(<span class="string">"/users"</span>, handler)
+router.<span class="function">Post</span>(<span class="string">"/users"</span>, handler)
+router.<span class="function">Put</span>(<span class="string">"/users/{id}"</span>, handler)
+router.<span class="function">Patch</span>(<span class="string">"/users/{id}"</span>, handler)
+router.<span class="function">Delete</span>(<span class="string">"/users/{id}"</span>, handler)
+router.<span class="function">Options</span>(<span class="string">"/users"</span>, handler)
+
+<span class="comment">// Match multiple methods</span>
+router.<span class="function">Match</span>([]<span class="type">string</span>{<span class="string">"GET"</span>, <span class="string">"POST"</span>}, <span class="string">"/form"</span>, handler)
+
+<span class="comment">// Match any method</span>
+router.<span class="function">Any</span>(<span class="string">"/webhook"</span>, handler)</code></pre>
+      </section>
+
+      <!-- Route Parameters -->
+      <section class="section">
+        <h2 class="section-title">Route Parameters</h2>
+        <p>Capture dynamic segments of the URI using route parameters:</p>
+
+        <h3>Required Parameters</h3>
+        <pre><code>router.<span class="function">Get</span>(<span class="string">"/users/{id}"</span>, <span class="keyword">func</span>(req *http.Request) *http.Response {
+    id := req.<span class="function">Param</span>(<span class="string">"id"</span>)
+    <span class="keyword">return</span> req.<span class="function">JSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{<span class="string">"user_id"</span>: id})
+})
+
+router.<span class="function">Get</span>(<span class="string">"/posts/{post}/comments/{comment}"</span>, <span class="keyword">func</span>(req *http.Request) *http.Response {
+    postID := req.<span class="function">Param</span>(<span class="string">"post"</span>)
+    commentID := req.<span class="function">Param</span>(<span class="string">"comment"</span>)
+    <span class="comment">// ...</span>
+})</code></pre>
+
+        <h3>Optional Parameters</h3>
+        <pre><code>router.<span class="function">Get</span>(<span class="string">"/users/{id?}"</span>, <span class="keyword">func</span>(req *http.Request) *http.Response {
+    id := req.<span class="function">Param</span>(<span class="string">"id"</span>)
+    <span class="keyword">if</span> id == <span class="string">""</span> {
+        <span class="comment">// List all users</span>
+    } <span class="keyword">else</span> {
+        <span class="comment">// Show specific user</span>
+    }
+})</code></pre>
+
+        <h3>Parameter Constraints</h3>
+        <pre><code><span class="comment">// Only match numeric IDs</span>
+router.<span class="function">Get</span>(<span class="string">"/users/{id}"</span>, handler).<span class="function">Where</span>(<span class="string">"id"</span>, <span class="string">"[0-9]+"</span>)
+
+<span class="comment">// Multiple constraints</span>
+router.<span class="function">Get</span>(<span class="string">"/posts/{slug}/page/{page}"</span>, handler).
+    <span class="function">Where</span>(<span class="string">"slug"</span>, <span class="string">"[a-z-]+"</span>).
+    <span class="function">Where</span>(<span class="string">"page"</span>, <span class="string">"[0-9]+"</span>)
+
+<span class="comment">// Using whereNumber and whereAlpha helpers</span>
+router.<span class="function">Get</span>(<span class="string">"/users/{id}"</span>, handler).<span class="function">WhereNumber</span>(<span class="string">"id"</span>)
+router.<span class="function">Get</span>(<span class="string">"/tags/{tag}"</span>, handler).<span class="function">WhereAlpha</span>(<span class="string">"tag"</span>)</code></pre>
+      </section>
+
+      <!-- Named Routes -->
+      <section class="section">
+        <h2 class="section-title">Named Routes</h2>
+        <p>Named routes allow you to generate URLs or redirects easily:</p>
+        <pre><code>router.<span class="function">Get</span>(<span class="string">"/users/{id}/profile"</span>, handler).<span class="function">Name</span>(<span class="string">"user.profile"</span>)
+
+<span class="comment">// Generate URL</span>
+url := routing.<span class="function">Route</span>(<span class="string">"user.profile"</span>, <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{<span class="string">"id"</span>: <span class="string">"123"</span>})
+<span class="comment">// Returns: /users/123/profile</span>
+
+<span class="comment">// Redirect to named route</span>
+<span class="keyword">return</span> req.<span class="function">RedirectToRoute</span>(<span class="string">"user.profile"</span>, <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{<span class="string">"id"</span>: <span class="string">"123"</span>})</code></pre>
+      </section>
+
+      <!-- Route Groups -->
+      <section class="section">
+        <h2 class="section-title">Route Groups</h2>
+        <p>Route groups allow you to share attributes across multiple routes:</p>
+
+        <h3>Middleware</h3>
+        <pre><code>router.<span class="function">Group</span>(<span class="keyword">func</span>(r *routing.Router) {
+    r.<span class="function">Middleware</span>(middleware.<span class="function">Auth</span>())
+
+    r.<span class="function">Get</span>(<span class="string">"/dashboard"</span>, dashboardHandler)
+    r.<span class="function">Get</span>(<span class="string">"/profile"</span>, profileHandler)
+    r.<span class="function">Post</span>(<span class="string">"/settings"</span>, settingsHandler)
+})</code></pre>
+
+        <h3>Prefix</h3>
+        <pre><code>router.<span class="function">Prefix</span>(<span class="string">"/admin"</span>).<span class="function">Group</span>(<span class="keyword">func</span>(r *routing.Router) {
+    r.<span class="function">Get</span>(<span class="string">"/users"</span>, adminUsersHandler)      <span class="comment">// /admin/users</span>
+    r.<span class="function">Get</span>(<span class="string">"/posts"</span>, adminPostsHandler)      <span class="comment">// /admin/posts</span>
+    r.<span class="function">Get</span>(<span class="string">"/settings"</span>, adminSettingsHandler) <span class="comment">// /admin/settings</span>
+})</code></pre>
+
+        <h3>Combining Attributes</h3>
+        <pre><code>router.
+    <span class="function">Prefix</span>(<span class="string">"/api/v1"</span>).
+    <span class="function">Middleware</span>(middleware.<span class="function">Auth</span>(), middleware.<span class="function">RateLimit</span>()).
+    <span class="function">Group</span>(<span class="keyword">func</span>(r *routing.Router) {
+        r.<span class="function">Get</span>(<span class="string">"/users"</span>, apiUsersHandler)
+        r.<span class="function">Get</span>(<span class="string">"/posts"</span>, apiPostsHandler)
+    })</code></pre>
+
+        <h3>Named Route Groups</h3>
+        <pre><code>router.
+    <span class="function">Prefix</span>(<span class="string">"/api"</span>).
+    <span class="function">Name</span>(<span class="string">"api."</span>).
+    <span class="function">Group</span>(<span class="keyword">func</span>(r *routing.Router) {
+        r.<span class="function">Get</span>(<span class="string">"/users"</span>, handler).<span class="function">Name</span>(<span class="string">"users"</span>) <span class="comment">// Route name: api.users</span>
+        r.<span class="function">Get</span>(<span class="string">"/posts"</span>, handler).<span class="function">Name</span>(<span class="string">"posts"</span>) <span class="comment">// Route name: api.posts</span>
+    })</code></pre>
+      </section>
+
+      <!-- Resource Routes -->
+      <section class="section">
+        <h2 class="section-title">Resource Routes</h2>
+        <p>Quickly create RESTful resource routes with a single line:</p>
+        <pre><code>router.<span class="function">Resource</span>(<span class="string">"/posts"</span>, &PostController{})</code></pre>
+        <p>This single line registers all of these routes:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>URI</th>
+              <th>Action</th>
+              <th>Route Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>GET</td>
+              <td>/posts</td>
+              <td>Index</td>
+              <td>posts.index</td>
+            </tr>
+            <tr>
+              <td>GET</td>
+              <td>/posts/create</td>
+              <td>Create</td>
+              <td>posts.create</td>
+            </tr>
+            <tr>
+              <td>POST</td>
+              <td>/posts</td>
+              <td>Store</td>
+              <td>posts.store</td>
+            </tr>
+            <tr>
+              <td>GET</td>
+              <td>/posts/{id}</td>
+              <td>Show</td>
+              <td>posts.show</td>
+            </tr>
+            <tr>
+              <td>GET</td>
+              <td>/posts/{id}/edit</td>
+              <td>Edit</td>
+              <td>posts.edit</td>
+            </tr>
+            <tr>
+              <td>PUT/PATCH</td>
+              <td>/posts/{id}</td>
+              <td>Update</td>
+              <td>posts.update</td>
+            </tr>
+            <tr>
+              <td>DELETE</td>
+              <td>/posts/{id}</td>
+              <td>Destroy</td>
+              <td>posts.destroy</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>API Resources</h3>
+        <p>For APIs, you can exclude the <code>create</code> and <code>edit</code> routes:</p>
+        <pre><code>router.<span class="function">ApiResource</span>(<span class="string">"/posts"</span>, &PostController{})</code></pre>
+
+        <h3>Partial Resources</h3>
+        <pre><code><span class="comment">// Only include specific actions</span>
+router.<span class="function">Resource</span>(<span class="string">"/posts"</span>, &PostController{}).<span class="function">Only</span>(<span class="string">"index"</span>, <span class="string">"show"</span>)
+
+<span class="comment">// Exclude specific actions</span>
+router.<span class="function">Resource</span>(<span class="string">"/posts"</span>, &PostController{}).<span class="function">Except</span>(<span class="string">"destroy"</span>)</code></pre>
+
+        <h3>Nested Resources</h3>
+        <pre><code>router.<span class="function">Resource</span>(<span class="string">"/posts.comments"</span>, &CommentController{})
+<span class="comment">// GET /posts/{post}/comments</span>
+<span class="comment">// POST /posts/{post}/comments</span>
+<span class="comment">// GET /posts/{post}/comments/{comment}</span>
+<span class="comment">// etc.</span></code></pre>
+      </section>
+
+      <!-- Domain Routing -->
+      <section class="section">
+        <h2 class="section-title">Domain Routing</h2>
+        <p>Route requests based on the subdomain:</p>
+        <pre><code>router.<span class="function">Domain</span>(<span class="string">"api.example.com"</span>).<span class="function">Group</span>(<span class="keyword">func</span>(r *routing.Router) {
+    r.<span class="function">Get</span>(<span class="string">"/users"</span>, apiUsersHandler)
+})
+
+<span class="comment">// With dynamic subdomains</span>
+router.<span class="function">Domain</span>(<span class="string">"{account}.example.com"</span>).<span class="function">Group</span>(<span class="keyword">func</span>(r *routing.Router) {
+    r.<span class="function">Get</span>(<span class="string">"/dashboard"</span>, <span class="keyword">func</span>(req *http.Request) *http.Response {
+        account := req.<span class="function">Param</span>(<span class="string">"account"</span>)
+        <span class="comment">// Load tenant-specific data</span>
+    })
+})</code></pre>
+      </section>
+
+      <!-- Middleware -->
+      <section class="section">
+        <h2 class="section-title">Route Middleware</h2>
+        <p>Assign middleware to routes or route groups:</p>
+
+        <h3>Single Route</h3>
+        <pre><code>router.
+    <span class="function">Get</span>(<span class="string">"/admin"</span>, adminHandler).
+    <span class="function">Middleware</span>(middleware.<span class="function">Auth</span>(), middleware.<span class="function">Admin</span>())</code></pre>
+
+        <h3>Route Group</h3>
+        <pre><code>router.<span class="function">Group</span>(<span class="keyword">func</span>(r *routing.Router) {
+    r.<span class="function">Middleware</span>(middleware.<span class="function">Auth</span>())
+    r.<span class="function">Get</span>(<span class="string">"/dashboard"</span>, dashboardHandler)
+})</code></pre>
+
+        <h3>Global Middleware</h3>
+        <pre><code><span class="comment">// In your application bootstrap</span>
+router.<span class="function">Use</span>(
+    middleware.<span class="function">Logger</span>(),
+    middleware.<span class="function">CORS</span>(),
+    middleware.<span class="function">RateLimiter</span>(),
+)</code></pre>
+
+        <h3>Creating Custom Middleware</h3>
+        <pre><code><span class="keyword">package</span> middleware
+
+<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/http"</span>
+
+<span class="keyword">func</span> <span class="function">CheckAge</span>() http.Middleware {
+    <span class="keyword">return</span> <span class="keyword">func</span>(next http.Handler) http.Handler {
+        <span class="keyword">return</span> <span class="keyword">func</span>(req *http.Request) *http.Response {
+            age := req.<span class="function">Input</span>(<span class="string">"age"</span>)
+
+            <span class="keyword">if</span> age < <span class="string">"18"</span> {
+                <span class="keyword">return</span> req.<span class="function">JSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+                    <span class="string">"error"</span>: <span class="string">"You must be 18 or older"</span>,
+                }).<span class="function">Status</span>(<span class="number">403</span>)
+            }
+
+            <span class="keyword">return</span> <span class="function">next</span>(req)
+        }
+    }
+}</code></pre>
+      </section>
+
+      <!-- Rate Limiting -->
+      <section class="section">
+        <h2 class="section-title">Rate Limiting</h2>
+        <p>Protect your routes with rate limiting:</p>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/ratelimit"</span>
+
+<span class="comment">// 60 requests per minute</span>
+router.
+    <span class="function">Get</span>(<span class="string">"/api/users"</span>, handler).
+    <span class="function">Middleware</span>(ratelimit.<span class="function">Throttle</span>(<span class="number">60</span>, <span class="number">1</span>))
+
+<span class="comment">// Custom rate limiter</span>
+router.<span class="function">Group</span>(<span class="keyword">func</span>(r *routing.Router) {
+    r.<span class="function">Middleware</span>(ratelimit.<span class="function">For</span>(<span class="string">"api"</span>).
+        <span class="function">By</span>(<span class="keyword">func</span>(req *http.Request) <span class="type">string</span> {
+            <span class="keyword">return</span> req.<span class="function">User</span>().ID <span class="comment">// Rate limit per user</span>
+        }).
+        <span class="function">Limit</span>(<span class="number">100</span>).
+        <span class="function">PerMinute</span>())
+
+    r.<span class="function">Get</span>(<span class="string">"/data"</span>, dataHandler)
+})</code></pre>
+      </section>
+
+      <!-- Fallback Routes -->
+      <section class="section">
+        <h2 class="section-title">Fallback Routes</h2>
+        <p>Define a route to handle 404 errors:</p>
+        <pre><code>router.<span class="function">Fallback</span>(<span class="keyword">func</span>(req *http.Request) *http.Response {
+    <span class="keyword">return</span> req.<span class="function">View</span>(<span class="string">"errors.404"</span>).<span class="function">Status</span>(<span class="number">404</span>)
+})</code></pre>
+      </section>
+
+      <!-- Route Caching -->
+      <section class="section">
+        <h2 class="section-title">Route Caching</h2>
+        <p>In production, cache your routes for better performance:</p>
+        <pre><code>ignite route:cache</code></pre>
+        <p>Clear the route cache:</p>
+        <pre><code>ignite route:clear</code></pre>
+      </section>
+
+      <!-- Route Inspection -->
+      <section class="section">
+        <h2 class="section-title">Route Inspection</h2>
+        <p>List all registered routes:</p>
+        <pre><code>ignite route:list</code></pre>
+        <p>This displays a table of all routes with their methods, URIs, names, and handlers.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

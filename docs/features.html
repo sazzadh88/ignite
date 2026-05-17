@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features - Ignite</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>Ignite</h1>
+        <div class="version">v0.1.0</div>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting Started</a></li>
+        <li><a href="routing.html">Routing</a></li>
+        <li><a href="database.html">Database</a></li>
+        <li><a href="authentication.html">Authentication</a></li>
+        <li><a href="features.html" class="active">Features</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1>Features</h1>
+      <p>Ignite includes a comprehensive suite of features to accelerate your development. Everything you need to build modern web applications.</p>
+
+      <!-- Validation -->
+      <section class="section">
+        <h2 class="section-title">Validation</h2>
+        <p>Powerful validation with 50+ built-in rules and support for custom rules:</p>
+
+        <h3>Basic Validation</h3>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/validation"</span>
+
+validator := validation.<span class="function">Make</span>(req.<span class="function">All</span>(), <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+    <span class="string">"name"</span>:  <span class="string">"required|min:3|max:255"</span>,
+    <span class="string">"email"</span>: <span class="string">"required|email|unique:users,email"</span>,
+    <span class="string">"age"</span>:   <span class="string">"required|integer|min:18"</span>,
+    <span class="string">"url"</span>:   <span class="string">"required|url"</span>,
+})
+
+<span class="keyword">if</span> validator.<span class="function">Fails</span>() {
+    <span class="keyword">return</span> req.<span class="function">Back</span>().<span class="function">WithErrors</span>(validator.<span class="function">Errors</span>())
+}</code></pre>
+
+        <h3>Available Rules</h3>
+        <pre><code>required, required_if, required_unless
+min, max, between, size
+email, url, ip, alpha, alpha_dash, alpha_num
+numeric, integer, digits, digits_between
+in, not_in
+unique, exists
+confirmed (password_confirmation)
+date, date_format, before, after
+regex, not_regex
+array, json
+accepted, boolean
+same, different
+file, image, mimes, max (file size)</code></pre>
+
+        <h3>Form Request Validation</h3>
+        <pre><code><span class="keyword">package</span> requests
+
+<span class="keyword">type</span> <span class="type">CreateUserRequest</span> <span class="keyword">struct</span> {}
+
+<span class="keyword">func</span> (r *CreateUserRequest) <span class="function">Rules</span>() <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span> {
+    <span class="keyword">return</span> <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+        <span class="string">"name"</span>:  <span class="string">"required|min:3"</span>,
+        <span class="string">"email"</span>: <span class="string">"required|email|unique:users"</span>,
+    }
+}
+
+<span class="keyword">func</span> (r *CreateUserRequest) <span class="function">Messages</span>() <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span> {
+    <span class="keyword">return</span> <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+        <span class="string">"name.required"</span>: <span class="string">"Please provide a name"</span>,
+    }
+}
+
+<span class="comment">// Use in controller</span>
+<span class="keyword">func</span> <span class="function">CreateUser</span>(req *http.Request, form *CreateUserRequest) *http.Response {
+    <span class="comment">// Request is already validated</span>
+}</code></pre>
+      </section>
+
+      <!-- Cache -->
+      <section class="section">
+        <h2 class="section-title">Cache</h2>
+        <p>Unified caching interface with multiple drivers (memory, Redis, file):</p>
+
+        <h3>Basic Usage</h3>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/cache"</span>
+
+<span class="comment">// Store item</span>
+cache.<span class="function">Put</span>(<span class="string">"key"</span>, <span class="string">"value"</span>, <span class="number">60</span>) <span class="comment">// 60 seconds</span>
+
+<span class="comment">// Retrieve item</span>
+value := cache.<span class="function">Get</span>(<span class="string">"key"</span>)
+
+<span class="comment">// Get with default</span>
+value := cache.<span class="function">Get</span>(<span class="string">"key"</span>, <span class="string">"default"</span>)
+
+<span class="comment">// Check existence</span>
+<span class="keyword">if</span> cache.<span class="function">Has</span>(<span class="string">"key"</span>) {
+    <span class="comment">// Key exists</span>
+}
+
+<span class="comment">// Delete item</span>
+cache.<span class="function">Forget</span>(<span class="string">"key"</span>)
+
+<span class="comment">// Clear all</span>
+cache.<span class="function">Flush</span>()</code></pre>
+
+        <h3>Remember Pattern</h3>
+        <pre><code><span class="comment">// Fetch or store</span>
+users := cache.<span class="function">Remember</span>(<span class="string">"users"</span>, <span class="number">300</span>, <span class="keyword">func</span>() <span class="keyword">interface</span>{} {
+    <span class="keyword">return</span> database.<span class="function">Table</span>(<span class="string">"users"</span>).<span class="function">Get</span>()
+})
+
+<span class="comment">// Remember forever</span>
+config := cache.<span class="function">RememberForever</span>(<span class="string">"config"</span>, <span class="keyword">func</span>() <span class="keyword">interface</span>{} {
+    <span class="keyword">return</span> <span class="function">loadConfig</span>()
+})</code></pre>
+
+        <h3>Cache Tags</h3>
+        <pre><code><span class="comment">// Store with tags</span>
+cache.
+    <span class="function">Tags</span>(<span class="string">"users"</span>, <span class="string">"admins"</span>).
+    <span class="function">Put</span>(<span class="string">"user:1"</span>, user, <span class="number">60</span>)
+
+<span class="comment">// Retrieve with tags</span>
+user := cache.<span class="function">Tags</span>(<span class="string">"users"</span>).<span class="function">Get</span>(<span class="string">"user:1"</span>)
+
+<span class="comment">// Flush by tag</span>
+cache.<span class="function">Tags</span>(<span class="string">"users"</span>).<span class="function">Flush</span>()</code></pre>
+
+        <h3>Atomic Locks</h3>
+        <pre><code><span class="comment">// Acquire lock</span>
+lock := cache.<span class="function">Lock</span>(<span class="string">"process-orders"</span>, <span class="number">10</span>)
+
+<span class="keyword">if</span> lock.<span class="function">Get</span>() {
+    <span class="keyword">defer</span> lock.<span class="function">Release</span>()
+
+    <span class="comment">// Do work...</span>
+}</code></pre>
+      </section>
+
+      <!-- Queue -->
+      <section class="section">
+        <h2 class="section-title">Queue & Jobs</h2>
+        <p>Process background jobs with multiple drivers (memory, Redis, database):</p>
+
+        <h3>Creating Jobs</h3>
+        <pre><code><span class="keyword">package</span> jobs
+
+<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/queue"</span>
+
+<span class="keyword">type</span> <span class="type">ProcessPayment</span> <span class="keyword">struct</span> {
+    OrderID <span class="type">int</span>
+    Amount  <span class="type">float64</span>
+}
+
+<span class="keyword">func</span> (j *ProcessPayment) <span class="function">Handle</span>() <span class="type">error</span> {
+    <span class="comment">// Process payment logic</span>
+    <span class="keyword">return</span> <span class="keyword">nil</span>
+}
+
+<span class="comment">// Customize job</span>
+<span class="keyword">func</span> (j *ProcessPayment) <span class="function">Queue</span>() <span class="type">string</span> {
+    <span class="keyword">return</span> <span class="string">"payments"</span>
+}
+
+<span class="keyword">func</span> (j *ProcessPayment) <span class="function">Retries</span>() <span class="type">int</span> {
+    <span class="keyword">return</span> <span class="number">3</span>
+}
+
+<span class="keyword">func</span> (j *ProcessPayment) <span class="function">Timeout</span>() <span class="type">int</span> {
+    <span class="keyword">return</span> <span class="number">30</span> <span class="comment">// seconds</span>
+}</code></pre>
+
+        <h3>Dispatching Jobs</h3>
+        <pre><code><span class="comment">// Dispatch immediately</span>
+queue.<span class="function">Dispatch</span>(&ProcessPayment{OrderID: <span class="number">123</span>, Amount: <span class="number">99.99</span>})
+
+<span class="comment">// Dispatch to specific queue</span>
+queue.<span class="function">OnQueue</span>(<span class="string">"payments"</span>).<span class="function">Dispatch</span>(&ProcessPayment{})
+
+<span class="comment">// Delay dispatch</span>
+queue.<span class="function">Delay</span>(<span class="number">60</span>).<span class="function">Dispatch</span>(&ProcessPayment{}) <span class="comment">// 60 seconds</span></code></pre>
+
+        <h3>Job Chaining</h3>
+        <pre><code><span class="comment">// Chain jobs (run sequentially)</span>
+queue.
+    <span class="function">Chain</span>(
+        &ProcessPayment{OrderID: <span class="number">123</span>},
+        &SendReceipt{OrderID: <span class="number">123</span>},
+        &UpdateInventory{OrderID: <span class="number">123</span>},
+    ).
+    <span class="function">Dispatch</span>()</code></pre>
+
+        <h3>Job Batching</h3>
+        <pre><code><span class="comment">// Process jobs in batch</span>
+batch := queue.<span class="function">Batch</span>(
+    &SendEmail{UserID: <span class="number">1</span>},
+    &SendEmail{UserID: <span class="number">2</span>},
+    &SendEmail{UserID: <span class="number">3</span>},
+).<span class="function">Then</span>(<span class="keyword">func</span>() {
+    <span class="comment">// All jobs completed</span>
+}).<span class="function">Catch</span>(<span class="keyword">func</span>(err <span class="type">error</span>) {
+    <span class="comment">// One or more jobs failed</span>
+}).<span class="function">Dispatch</span>()</code></pre>
+
+        <h3>Running Workers</h3>
+        <pre><code><span class="comment"># Start queue worker</span>
+ignite queue:work
+
+<span class="comment"># Process specific queue</span>
+ignite queue:work --queue=payments
+
+<span class="comment"># Process multiple queues</span>
+ignite queue:work --queue=high,default,low</code></pre>
+      </section>
+
+      <!-- Events -->
+      <section class="section">
+        <h2 class="section-title">Events</h2>
+        <p>Decouple your application with an event dispatcher:</p>
+
+        <h3>Defining Events</h3>
+        <pre><code><span class="keyword">package</span> events
+
+<span class="keyword">type</span> <span class="type">UserRegistered</span> <span class="keyword">struct</span> {
+    User *User
+}</code></pre>
+
+        <h3>Creating Listeners</h3>
+        <pre><code><span class="keyword">package</span> listeners
+
+<span class="keyword">type</span> <span class="type">SendWelcomeEmail</span> <span class="keyword">struct</span>{}
+
+<span class="keyword">func</span> (l *SendWelcomeEmail) <span class="function">Handle</span>(event *events.UserRegistered) {
+    <span class="comment">// Send welcome email to event.User</span>
+}
+
+<span class="comment">// Queue listener</span>
+<span class="keyword">func</span> (l *SendWelcomeEmail) <span class="function">ShouldQueue</span>() <span class="type">bool</span> {
+    <span class="keyword">return</span> <span class="keyword">true</span>
+}</code></pre>
+
+        <h3>Registering Listeners</h3>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/events"</span>
+
+events.<span class="function">Listen</span>(&UserRegistered{}, &SendWelcomeEmail{})
+events.<span class="function">Listen</span>(&UserRegistered{}, &LogRegistration{})</code></pre>
+
+        <h3>Dispatching Events</h3>
+        <pre><code>events.<span class="function">Dispatch</span>(&UserRegistered{User: user})</code></pre>
+
+        <h3>Event Subscribers</h3>
+        <pre><code><span class="keyword">type</span> <span class="type">UserEventSubscriber</span> <span class="keyword">struct</span>{}
+
+<span class="keyword">func</span> (s *UserEventSubscriber) <span class="function">Subscribe</span>(dispatcher *events.Dispatcher) {
+    dispatcher.<span class="function">Listen</span>(&UserRegistered{}, s.<span class="function">OnUserRegistered</span>)
+    dispatcher.<span class="function">Listen</span>(&UserDeleted{}, s.<span class="function">OnUserDeleted</span>)
+}
+
+<span class="keyword">func</span> (s *UserEventSubscriber) <span class="function">OnUserRegistered</span>(e *UserRegistered) {
+    <span class="comment">// Handle registration</span>
+}
+
+<span class="keyword">func</span> (s *UserEventSubscriber) <span class="function">OnUserDeleted</span>(e *UserDeleted) {
+    <span class="comment">// Handle deletion</span>
+}</code></pre>
+      </section>
+
+      <!-- Mail -->
+      <section class="section">
+        <h2 class="section-title">Mail</h2>
+        <p>Send beautiful emails with multiple transports (SMTP, SES, Mailgun):</p>
+
+        <h3>Creating Mailables</h3>
+        <pre><code><span class="keyword">package</span> mail
+
+<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/mail"</span>
+
+<span class="keyword">type</span> <span class="type">WelcomeEmail</span> <span class="keyword">struct</span> {
+    User *User
+}
+
+<span class="keyword">func</span> (m *WelcomeEmail) <span class="function">Build</span>() *mail.Message {
+    <span class="keyword">return</span> mail.
+        <span class="function">To</span>(m.User.Email).
+        <span class="function">Subject</span>(<span class="string">"Welcome to Ignite!"</span>).
+        <span class="function">View</span>(<span class="string">"emails.welcome"</span>, <span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+            <span class="string">"user"</span>: m.User,
+        })
+}</code></pre>
+
+        <h3>Sending Mail</h3>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/mail"</span>
+
+<span class="comment">// Send mailable</span>
+mail.<span class="function">Send</span>(&WelcomeEmail{User: user})
+
+<span class="comment">// Queue mailable</span>
+mail.<span class="function">Queue</span>(&WelcomeEmail{User: user})
+
+<span class="comment">// Send later</span>
+mail.<span class="function">Later</span>(<span class="number">60</span>, &WelcomeEmail{User: user}) <span class="comment">// 60 seconds</span>
+
+<span class="comment">// Simple email</span>
+mail.
+    <span class="function">To</span>(<span class="string">"user@example.com"</span>).
+    <span class="function">Subject</span>(<span class="string">"Hello"</span>).
+    <span class="function">Text</span>(<span class="string">"Email body"</span>).
+    <span class="function">Send</span>()</code></pre>
+
+        <h3>Attachments</h3>
+        <pre><code><span class="keyword">func</span> (m *InvoiceEmail) <span class="function">Build</span>() *mail.Message {
+    <span class="keyword">return</span> mail.
+        <span class="function">To</span>(m.User.Email).
+        <span class="function">Subject</span>(<span class="string">"Your Invoice"</span>).
+        <span class="function">View</span>(<span class="string">"emails.invoice"</span>).
+        <span class="function">Attach</span>(<span class="string">"/path/to/invoice.pdf"</span>)
+}</code></pre>
+      </section>
+
+      <!-- Notifications -->
+      <section class="section">
+        <h2 class="section-title">Notifications</h2>
+        <p>Send notifications across multiple channels (mail, SMS, Slack, database):</p>
+
+        <h3>Creating Notifications</h3>
+        <pre><code><span class="keyword">package</span> notifications
+
+<span class="keyword">type</span> <span class="type">InvoicePaid</span> <span class="keyword">struct</span> {
+    Invoice *Invoice
+}
+
+<span class="keyword">func</span> (n *InvoicePaid) <span class="function">Via</span>(notifiable <span class="keyword">interface</span>{}) []<span class="type">string</span> {
+    <span class="keyword">return</span> []<span class="type">string</span>{<span class="string">"mail"</span>, <span class="string">"database"</span>}
+}
+
+<span class="keyword">func</span> (n *InvoicePaid) <span class="function">ToMail</span>(notifiable <span class="keyword">interface</span>{}) *mail.Message {
+    <span class="keyword">return</span> mail.
+        <span class="function">Subject</span>(<span class="string">"Invoice Paid"</span>).
+        <span class="function">View</span>(<span class="string">"emails.invoice-paid"</span>, <span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+            <span class="string">"invoice"</span>: n.Invoice,
+        })
+}
+
+<span class="keyword">func</span> (n *InvoicePaid) <span class="function">ToDatabase</span>(notifiable <span class="keyword">interface</span>{}) <span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{} {
+    <span class="keyword">return</span> <span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+        <span class="string">"invoice_id"</span>: n.Invoice.ID,
+        <span class="string">"amount"</span>:     n.Invoice.Amount,
+    }
+}</code></pre>
+
+        <h3>Sending Notifications</h3>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/notifications"</span>
+
+<span class="comment">// Send to user</span>
+user.<span class="function">Notify</span>(&InvoicePaid{Invoice: invoice})
+
+<span class="comment">// Send to multiple users</span>
+notifications.<span class="function">Send</span>(users, &InvoicePaid{Invoice: invoice})</code></pre>
+      </section>
+
+      <!-- Task Scheduling -->
+      <section class="section">
+        <h2 class="section-title">Task Scheduling</h2>
+        <p>Schedule recurring tasks with a fluent cron-style scheduler:</p>
+
+        <h3>Defining Schedules</h3>
+        <pre><code><span class="keyword">package</span> main
+
+<span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/schedule"</span>
+
+<span class="keyword">func</span> <span class="function">RegisterSchedule</span>(s *schedule.Schedule) {
+    <span class="comment">// Run every minute</span>
+    s.<span class="function">Call</span>(<span class="function">cleanupTempFiles</span>).<span class="function">EveryMinute</span>()
+
+    <span class="comment">// Run hourly</span>
+    s.<span class="function">Call</span>(<span class="function">sendReports</span>).<span class="function">Hourly</span>()
+
+    <span class="comment">// Run daily at specific time</span>
+    s.<span class="function">Call</span>(<span class="function">backupDatabase</span>).<span class="function">Daily</span>().<span class="function">At</span>(<span class="string">"02:00"</span>)
+
+    <span class="comment">// Run on specific days</span>
+    s.<span class="function">Call</span>(<span class="function">weeklyReport</span>).<span class="function">Weekly</span>().<span class="function">Monday</span>().<span class="function">At</span>(<span class="string">"08:00"</span>)
+
+    <span class="comment">// Custom cron expression</span>
+    s.<span class="function">Call</span>(<span class="function">complexTask</span>).<span class="function">Cron</span>(<span class="string">"0 */6 * * *"</span>)
+
+    <span class="comment">// Prevent overlaps</span>
+    s.<span class="function">Call</span>(<span class="function">longTask</span>).<span class="function">EveryFiveMinutes</span>().<span class="function">WithoutOverlapping</span>()
+
+    <span class="comment">// Run in background</span>
+    s.<span class="function">Call</span>(<span class="function">task</span>).<span class="function">Hourly</span>().<span class="function">RunInBackground</span>()
+}</code></pre>
+
+        <h3>Frequency Options</h3>
+        <pre><code>.<span class="function">EveryMinute</span>()
+.<span class="function">EveryFiveMinutes</span>()
+.<span class="function">EveryTenMinutes</span>()
+.<span class="function">EveryThirtyMinutes</span>()
+.<span class="function">Hourly</span>()
+.<span class="function">Daily</span>()
+.<span class="function">Weekly</span>()
+.<span class="function">Monthly</span>()
+.<span class="function">Yearly</span>()
+.<span class="function">Weekdays</span>()
+.<span class="function">Weekends</span>()
+.<span class="function">Monday</span>(), .<span class="function">Tuesday</span>(), etc.</code></pre>
+
+        <h3>Running the Scheduler</h3>
+        <pre><code>ignite schedule:run</code></pre>
+      </section>
+
+      <!-- HTTP Client -->
+      <section class="section">
+        <h2 class="section-title">HTTP Client</h2>
+        <p>Fluent HTTP client with retries, middleware, and macros:</p>
+
+        <h3>Making Requests</h3>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/http/client"</span>
+
+<span class="comment">// GET request</span>
+response := client.<span class="function">Get</span>(<span class="string">"https://api.example.com/users"</span>)
+
+<span class="comment">// POST request</span>
+response := client.<span class="function">Post</span>(<span class="string">"https://api.example.com/users"</span>, <span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+    <span class="string">"name"</span>:  <span class="string">"John"</span>,
+    <span class="string">"email"</span>: <span class="string">"john@example.com"</span>,
+})
+
+<span class="comment">// With headers</span>
+response := client.
+    <span class="function">WithHeaders</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+        <span class="string">"Authorization"</span>: <span class="string">"Bearer "</span> + token,
+    }).
+    <span class="function">Get</span>(<span class="string">"https://api.example.com/users"</span>)
+
+<span class="comment">// JSON response</span>
+<span class="keyword">var</span> users []User
+response.<span class="function">JSON</span>(&users)</code></pre>
+
+        <h3>Retry and Timeout</h3>
+        <pre><code>response := client.
+    <span class="function">Retry</span>(<span class="number">3</span>, <span class="number">100</span>). <span class="comment">// 3 retries, 100ms delay</span>
+    <span class="function">Timeout</span>(<span class="number">30</span>).      <span class="comment">// 30 seconds</span>
+    <span class="function">Get</span>(url)</code></pre>
+      </section>
+
+      <!-- Broadcasting -->
+      <section class="section">
+        <h2 class="section-title">Broadcasting</h2>
+        <p>Real-time event broadcasting with WebSockets and Server-Sent Events:</p>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/broadcasting"</span>
+
+<span class="comment">// Broadcast event</span>
+broadcasting.
+    <span class="function">Channel</span>(<span class="string">"chat.room."</span> + roomID).
+    <span class="function">Broadcast</span>(<span class="string">"MessageSent"</span>, message)</code></pre>
+      </section>
+
+      <!-- Rate Limiting -->
+      <section class="section">
+        <h2 class="section-title">Rate Limiting</h2>
+        <p>Flexible rate limiting for APIs and routes:</p>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/ratelimit"</span>
+
+<span class="comment">// Route rate limit</span>
+router.
+    <span class="function">Get</span>(<span class="string">"/api/users"</span>, handler).
+    <span class="function">Middleware</span>(ratelimit.<span class="function">Throttle</span>(<span class="number">60</span>, <span class="number">1</span>)) <span class="comment">// 60 per minute</span>
+
+<span class="comment">// Per-user rate limit</span>
+limiter := ratelimit.<span class="function">For</span>(<span class="string">"api"</span>).
+    <span class="function">By</span>(<span class="keyword">func</span>(req *http.Request) <span class="type">string</span> {
+        <span class="keyword">return</span> req.<span class="function">User</span>().ID
+    }).
+    <span class="function">Limit</span>(<span class="number">100</span>).
+    <span class="function">PerMinute</span>()
+
+<span class="comment">// Manual rate limiting</span>
+<span class="keyword">if</span> limiter.<span class="function">TooManyAttempts</span>(key) {
+    <span class="keyword">return</span> req.<span class="function">JSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>{
+        <span class="string">"error"</span>: <span class="string">"Too many requests"</span>,
+    }).<span class="function">Status</span>(<span class="number">429</span>)
+}
+
+limiter.<span class="function">Hit</span>(key)</code></pre>
+      </section>
+
+      <!-- File Storage -->
+      <section class="section">
+        <h2 class="section-title">File Storage</h2>
+        <p>Unified file storage interface for local and cloud storage (S3):</p>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/storage"</span>
+
+<span class="comment">// Store file</span>
+path := storage.<span class="function">Put</span>(<span class="string">"avatars/user.jpg"</span>, fileData)
+
+<span class="comment">// Get file</span>
+data := storage.<span class="function">Get</span>(<span class="string">"avatars/user.jpg"</span>)
+
+<span class="comment">// Delete file</span>
+storage.<span class="function">Delete</span>(<span class="string">"avatars/user.jpg"</span>)
+
+<span class="comment">// Check existence</span>
+<span class="keyword">if</span> storage.<span class="function">Exists</span>(<span class="string">"avatars/user.jpg"</span>) {
+    <span class="comment">// File exists</span>
+}
+
+<span class="comment">// Get URL</span>
+url := storage.<span class="function">URL</span>(<span class="string">"avatars/user.jpg"</span>)
+
+<span class="comment">// Use specific disk</span>
+storage.<span class="function">Disk</span>(<span class="string">"s3"</span>).<span class="function">Put</span>(<span class="string">"file.jpg"</span>, data)</code></pre>
+      </section>
+
+      <!-- Testing -->
+      <section class="section">
+        <h2 class="section-title">Testing</h2>
+        <p>Built-in testing utilities for HTTP, database, and more:</p>
+        <pre><code><span class="keyword">import</span> <span class="string">"github.com/sazzad/ignite/testing"</span>
+
+<span class="keyword">func</span> <span class="function">TestUserCreation</span>(t *testing.T) {
+    <span class="comment">// HTTP testing</span>
+    response := testing.
+        <span class="function">Post</span>(<span class="string">"/users"</span>, <span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+            <span class="string">"name"</span>:  <span class="string">"John"</span>,
+            <span class="string">"email"</span>: <span class="string">"john@example.com"</span>,
+        })
+
+    response.
+        <span class="function">AssertStatus</span>(<span class="number">201</span>).
+        <span class="function">AssertJSON</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+            <span class="string">"name"</span>: <span class="string">"John"</span>,
+        })
+
+    <span class="comment">// Database assertions</span>
+    testing.<span class="function">AssertDatabaseHas</span>(<span class="string">"users"</span>, <span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>{}{
+        <span class="string">"email"</span>: <span class="string">"john@example.com"</span>,
+    })
+}</code></pre>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

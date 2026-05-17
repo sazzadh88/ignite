@@ -1,0 +1,44 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+ignite
+
+# Test binary
+*.test
+
+# Output
+*.out
+
+# Go workspace
+go.work
+go.work.sum
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vendor (optional — uncomment if vendoring)
+# vendor/
+
+# Coverage
+coverage.html
+coverage.out
+
+# Ruflo / Agent DB
+.claude-flow/
+agentdb.rvf
+agentdb.rvf.lock
+ruvector.db
+
+# Build prompt (not part of framework)
+prompt.md
