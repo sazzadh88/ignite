@@ -38,17 +38,9 @@ func main() {
 		fmt.Printf("    go run main.go serve\n\n")
 
 	case "serve":
-		host := flags["host"]
-		if host == "" {
-			host = "localhost"
-		}
-		port := flags["port"]
-		if port == "" {
-			port = "8080"
-		}
-		fmt.Println("Starting development server...")
-		fmt.Printf("Server running on http://%s:%s\n", host, port)
-		fmt.Println("Note: This is the CLI tool. Use 'go run main.go serve' from your project directory.")
+		fmt.Println("  Run this from your project directory:")
+		fmt.Println("    go run main.go serve")
+		fmt.Println("    go run main.go serve --host=0.0.0.0 --port=9000")
 
 	case "key:generate":
 		fmt.Println("Application key generated successfully.")
