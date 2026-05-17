@@ -272,7 +272,13 @@ func parseFlags(args []string) (map[string]string, []string) {
 
 func printUsage() {
 	fmt.Println(`
-Ignite - A Laravel-inspired Go Framework (v0.1.0)
+  ___            _ _
+ |_ _|__ _ _ _ (_) |_ ___
+  | |/ _` + "`" + ` | ' \| |  _/ -_)
+ |___\__, |_||_|_|\__\___|
+     |___/                 v0.1.0
+
+ The Laravel of Go.
 
 Usage:
   ignite <command> [arguments] [flags]
