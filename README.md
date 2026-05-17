@@ -75,7 +75,7 @@ Start the development server:
 go run main.go serve
 ```
 
-Your application is now running at `http://localhost:8000`.
+Your application is now running at `http://localhost:8080`.
 
 ## Features
 
