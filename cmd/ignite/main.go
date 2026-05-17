@@ -58,7 +58,7 @@ func main() {
 		// TODO: implement route listing
 
 	case "version", "--version", "-v":
-		fmt.Println("Ignite v0.1.1")
+		printBanner()
 
 	case "self-update", "upgrade":
 		fmt.Println("  Upgrading Ignite...")
@@ -282,16 +282,34 @@ func parseFlags(args []string) (map[string]string, []string) {
 	return flags, positional
 }
 
+func printBanner() {
+	lines := []string{
+		`  ___            _ _       `,
+		` |_ _|__ _ _ _ (_) |_ ___ `,
+		`  | |/ _` + "`" + ` | ' \| |  _/ -_)`,
+		` |___\__, |_||_|_|\__\___|`,
+		`     |___/                `,
+	}
+	colors := []string{
+		"\033[38;5;196m", // red
+		"\033[38;5;208m", // orange
+		"\033[38;5;226m", // yellow
+		"\033[38;5;46m",  // green
+		"\033[38;5;21m",  // blue
+	}
+	reset := "\033[0m"
+
+	fmt.Println()
+	for i, line := range lines {
+		fmt.Printf("%s%s%s\n", colors[i%len(colors)], line, reset)
+	}
+	fmt.Printf("\033[38;5;141m v0.1.2%s\n", reset)
+	fmt.Printf("\033[38;5;245m Web artisan meets Go performance.%s\n", reset)
+}
+
 func printUsage() {
+	printBanner()
 	fmt.Println(`
-  ___            _ _
- |_ _|__ _ _ _ (_) |_ ___
-  | |/ _` + "`" + ` | ' \| |  _/ -_)
- |___\__, |_||_|_|\__\___|
-     |___/                 v0.1.1
-
- Web artisan meets Go performance.
-
 Usage:
   ignite <command> [arguments] [flags]
 

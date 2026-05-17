@@ -147,10 +147,9 @@ MAIL_FROM_NAME=MyApp</code></pre>
       <section class="section">
         <h2 class="section-title">Running the Development Server</h2>
         <p>Start the built-in development server:</p>
-        <pre><code>ignite serve</code></pre>
-        <p>By default, your application will be available at <code>http://localhost:8000</code>. You can specify a different port:</p>
-        <pre><code>ignite serve --port=3000</code></pre>
-        <p>The development server includes hot-reloading, so your changes will be reflected immediately.</p>
+        <pre><code>go run main.go serve</code></pre>
+        <p>By default, your application will be available at <code>http://localhost:8080</code>. You can specify a different host or port:</p>
+        <pre><code>go run main.go serve --host=0.0.0.0 --port=9000</code></pre>
       </section>
 
       <!-- Your First Route -->
