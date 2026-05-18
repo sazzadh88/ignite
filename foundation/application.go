@@ -65,12 +65,7 @@ func (app *Application) Bootstrap() {
 	config.LoadEnv(envPath)
 
 	app.environment = config.Env("APP_ENV", "local")
-	app.config.Set("app.name", config.Env("APP_NAME", "Ignite"))
-	app.config.Set("app.env", app.environment)
-	app.config.Set("app.debug", config.EnvBool("APP_DEBUG", true))
-	app.config.Set("app.port", config.EnvInt("APP_PORT", 8080))
-	app.config.Set("app.key", config.Env("APP_KEY", ""))
-	app.config.Set("app.url", config.Env("APP_URL", "http://localhost"))
+	app.loadConfiguration()
 
 	app.bootEncrypter()
 }

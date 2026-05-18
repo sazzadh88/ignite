@@ -62,6 +62,7 @@ func NewProject(name string) error {
 		".env.example":                 envTemplate(name),
 		".gitignore":                   gitignoreTemplate(),
 		"bootstrap/app.go":             bootstrapTemplate(modulePath),
+		"config/config.go":             configLoaderTemplate(),
 		"config/app.go":                configAppTemplate(),
 		"config/database.go":           configDatabaseTemplate(),
 		"routes/web.go":                routesWebTemplate(),
@@ -136,12 +137,16 @@ func mainTemplate(modulePath string) string {
 import (
 	"github.com/sazzadh88/ignite/foundation"
 	"github.com/sazzadh88/ignite/routing"
+	"%s/config"
 	"%s/routes"
 )
 
 func main() {
 	app := foundation.NewApplication(".")
 	app.Bootstrap()
+
+	// Apply project configuration on top of framework defaults.
+	config.Load(app.Config())
 
 	// Register routes
 	routes.RegisterWeb()
@@ -150,7 +155,7 @@ func main() {
 	// Run the application
 	app.Run(routing.DefaultRouter)
 }
-`, modulePath)
+`, modulePath, modulePath)
 }
 
 // binIgniteTemplate is the project console wrapper, shipped at the project
@@ -238,16 +243,42 @@ func CreateApplication() *foundation.Application {
 `
 }
 
+// configLoaderTemplate is the project's config entrypoint. The framework
+// already maps .env into sensible defaults at bootstrap; Load() runs after
+// that so a project can override or extend any configuration value. This is
+// the analog of Laravel's config/*.php files.
+func configLoaderTemplate() string {
+	return `package config
+
+import icfg "github.com/sazzadh88/ignite/config"
+
+// Load applies this project's configuration on top of the framework
+// defaults. It is called from main.go after app.Bootstrap().
+func Load(c *icfg.Repository) {
+	registerApp(c)
+	registerDatabase(c)
+}
+`
+}
+
 func configAppTemplate() string {
 	return `package config
 
-// App configuration
-var App = map[string]any{
-	"name":  "Ignite",
-	"env":   "local",
-	"debug": true,
-	"url":   "http://localhost",
-	"port":  8080,
+import icfg "github.com/sazzadh88/ignite/config"
+
+// registerApp defines application configuration. Values come from .env;
+// the second argument to icfg.Env is the default. This block is the whole
+// "app" config section (the analog of Laravel's config/app.php).
+func registerApp(c *icfg.Repository) {
+	c.Set("app", map[string]any{
+		"name":     icfg.Env("APP_NAME", "Ignite"),
+		"env":      icfg.Env("APP_ENV", "local"),
+		"debug":    icfg.EnvBool("APP_DEBUG", true),
+		"url":      icfg.Env("APP_URL", "http://localhost"),
+		"port":     icfg.EnvInt("APP_PORT", 8080),
+		"key":      icfg.Env("APP_KEY", ""),
+		"timezone": icfg.Env("APP_TIMEZONE", "UTC"),
+	})
 }
 `
 }
@@ -255,23 +286,29 @@ var App = map[string]any{
 func configDatabaseTemplate() string {
 	return `package config
 
-// Database configuration
-var Database = map[string]any{
-	"default": "mysql",
-	"connections": map[string]any{
-		"mysql": map[string]any{
-			"driver":   "mysql",
-			"host":     "127.0.0.1",
-			"port":     3306,
-			"database": "ignite",
-			"username": "root",
-			"password": "",
+import icfg "github.com/sazzadh88/ignite/config"
+
+// registerDatabase defines database connections (the analog of Laravel's
+// config/database.php). "default" selects which connection under
+// "connections" is used; switch it via DB_CONNECTION in .env.
+func registerDatabase(c *icfg.Repository) {
+	c.Set("database", map[string]any{
+		"default": icfg.Env("DB_CONNECTION", "sqlite"),
+		"connections": map[string]any{
+			"sqlite": map[string]any{
+				"driver":   "sqlite3",
+				"database": icfg.Env("DB_DATABASE", "database/database.sqlite"),
+			},
+			"mysql": map[string]any{
+				"driver":   "mysql",
+				"host":     icfg.Env("DB_HOST", "127.0.0.1"),
+				"port":     icfg.EnvInt("DB_PORT", 3306),
+				"database": icfg.Env("DB_DATABASE", "ignite"),
+				"username": icfg.Env("DB_USERNAME", "root"),
+				"password": icfg.Env("DB_PASSWORD", ""),
+			},
 		},
-		"sqlite": map[string]any{
-			"driver":   "sqlite",
-			"database": "database/database.sqlite",
-		},
-	},
+	})
 }
 `
 }
