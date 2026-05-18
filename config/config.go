@@ -44,6 +44,9 @@ func LoadEnv(path string) error {
 		value := strings.TrimSpace(parts[1])
 		value = strings.Trim(value, `"'`)
 
+		// Expand ${VAR} references
+		value = os.Expand(value, os.Getenv)
+
 		// Only set if not already in environment (env overrides .env file)
 		if os.Getenv(key) == "" {
 			os.Setenv(key, value)
