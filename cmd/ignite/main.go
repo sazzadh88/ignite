@@ -10,6 +10,22 @@ import (
 	"github.com/sazzadh88/ignite/internal/scaffold"
 )
 
+// projectCommands are commands that operate on an existing application. They
+// must run through the project's own console (./ignite) so they use the
+// framework version pinned in that project's go.mod — not this global binary.
+var projectCommands = map[string]bool{
+	"serve": true, "key:generate": true, "route:list": true,
+	"make:controller": true, "make:model": true, "make:middleware": true,
+	"make:migration": true, "make:seeder": true, "make:request": true,
+	"make:command": true, "make:event": true, "make:listener": true,
+	"make:job": true, "make:policy": true,
+	"migrate": true, "migrate:rollback": true, "migrate:refresh": true,
+	"migrate:fresh": true, "migrate:reset": true, "migrate:status": true,
+	"db:seed": true,
+	"queue:work": true, "queue:listen": true, "queue:restart": true,
+	"schedule:run": true, "schedule:work": true,
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		printUsage()
@@ -18,7 +34,12 @@ func main() {
 
 	command := os.Args[1]
 	args := os.Args[2:]
-	flags, positional := parseFlags(args)
+	_, positional := parseFlags(args)
+
+	if projectCommands[command] {
+		redirectToProjectConsole(command)
+		return
+	}
 
 	switch command {
 	case "new":
@@ -35,20 +56,8 @@ func main() {
 		fmt.Printf("  Next steps:\n")
 		fmt.Printf("    cd %s\n", appName)
 		fmt.Printf("    go mod tidy\n")
-		fmt.Printf("    go run main.go serve\n\n")
-
-	case "serve":
-		fmt.Println("  Run this from your project directory:")
-		fmt.Println("    go run main.go serve")
-		fmt.Println("    go run main.go serve --host=0.0.0.0 --port=9000")
-
-	case "key:generate":
-		fmt.Println("Application key generated successfully.")
-		// TODO: implement key generation
-
-	case "route:list":
-		fmt.Println("Registered routes:")
-		// TODO: implement route listing
+		fmt.Printf("    ./ignite key:generate\n")
+		fmt.Printf("    ./ignite serve\n\n")
 
 	case "version", "--version", "-v":
 		printBanner()
@@ -67,177 +76,22 @@ func main() {
 	case "help", "--help", "-h":
 		printUsage()
 
-	// Make commands
-	case "make:controller":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:controller <Name> [--api]")
-			os.Exit(1)
-		}
-		name := positional[0]
-		_, isAPI := flags["api"]
-		if err := scaffold.MakeController(name, isAPI); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Controller '%s' created.\n", name)
-
-	case "make:model":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:model <Name>")
-			os.Exit(1)
-		}
-		if err := scaffold.MakeModel(positional[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Model '%s' created.\n", positional[0])
-
-	case "make:middleware":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:middleware <Name>")
-			os.Exit(1)
-		}
-		if err := scaffold.MakeMiddleware(positional[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Middleware '%s' created.\n", positional[0])
-
-	case "make:migration":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:migration <name>")
-			os.Exit(1)
-		}
-		if err := scaffold.MakeMigration(positional[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Migration '%s' created.\n", positional[0])
-
-	case "make:seeder":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:seeder <Name>")
-			os.Exit(1)
-		}
-		if err := scaffold.MakeSeeder(positional[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Seeder '%s' created.\n", positional[0])
-
-	case "make:request":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:request <Name>")
-			os.Exit(1)
-		}
-		if err := scaffold.MakeRequest(positional[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Request '%s' created.\n", positional[0])
-
-	case "make:command":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:command <Name>")
-			os.Exit(1)
-		}
-		if err := scaffold.MakeCommand(positional[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Command '%s' created.\n", positional[0])
-
-	case "make:event":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:event <Name>")
-			os.Exit(1)
-		}
-		if err := scaffold.MakeEvent(positional[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Event '%s' created.\n", positional[0])
-
-	case "make:listener":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:listener <Name>")
-			os.Exit(1)
-		}
-		if err := scaffold.MakeListener(positional[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Listener '%s' created.\n", positional[0])
-
-	case "make:job":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:job <Name>")
-			os.Exit(1)
-		}
-		if err := scaffold.MakeJob(positional[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Job '%s' created.\n", positional[0])
-
-	case "make:policy":
-		if len(positional) < 1 {
-			fmt.Println("Usage: ignite make:policy <Name>")
-			os.Exit(1)
-		}
-		if err := scaffold.MakePolicy(positional[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("  ✓ Policy '%s' created.\n", positional[0])
-
-	// Database commands
-	case "migrate":
-		fmt.Println("Running migrations...")
-
-	case "migrate:rollback":
-		fmt.Println("Rolling back...")
-
-	case "migrate:refresh":
-		fmt.Println("Refreshing...")
-
-	case "migrate:fresh":
-		_, withSeed := flags["seed"]
-		fmt.Println("Dropping all tables and re-running migrations...")
-		if withSeed {
-			fmt.Println("Seeding database...")
-		}
-
-	case "db:seed":
-		class := flags["class"]
-		if class != "" {
-			fmt.Printf("Seeding: %s\n", class)
-		} else {
-			fmt.Println("Seeding database...")
-		}
-
-	// Queue commands
-	case "queue:work":
-		fmt.Println("Processing jobs...")
-
-	case "queue:listen":
-		fmt.Println("Listening for jobs...")
-
-	case "queue:restart":
-		fmt.Println("Restarting queue worker...")
-
-	// Schedule commands
-	case "schedule:run":
-		fmt.Println("Running scheduled tasks...")
-
-	case "schedule:work":
-		fmt.Println("Schedule worker started...")
-
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 		printUsage()
 		os.Exit(1)
 	}
+}
+
+// redirectToProjectConsole tells the user to run project commands through the
+// project-local console instead of the global binary (Rails bin/rails model).
+func redirectToProjectConsole(command string) {
+	fmt.Fprintf(os.Stderr, "\n  '%s' is a project command — it does not run from the global ignite binary.\n\n", command)
+	fmt.Fprintf(os.Stderr, "  Run it from your project's console so it uses the framework\n")
+	fmt.Fprintf(os.Stderr, "  version pinned in that project's go.mod:\n\n")
+	fmt.Fprintf(os.Stderr, "    ./ignite %s\n\n", strings.Join(os.Args[1:], " "))
+	fmt.Fprintf(os.Stderr, "  The global 'ignite' binary only creates new projects (ignite new <name>).\n\n")
+	os.Exit(1)
 }
 
 // parseFlags separates --key=value and --key value flags from positional arguments.
@@ -304,46 +158,26 @@ func printUsage() {
 	printBanner()
 	fmt.Println(`
 Usage:
-  ignite <command> [arguments] [flags]
+  ignite <command>                Global commands (project creation)
+  ./ignite <command>              Project commands (run from a project)
 
-Available Commands:
+Global Commands:
   new <name>            Create a new Ignite application
-  serve                 Start the development server
-    --host=<host>         Host to bind (default: localhost)
-    --port=<port>         Port to bind (default: 8080)
-  key:generate          Generate application key
-  route:list            List registered routes
   version               Display framework version
-  upgrade               Upgrade Ignite to latest version
+  upgrade               Upgrade the global ignite binary
 
-Make Commands:
-  make:controller <Name>   Generate a controller [--api for API resource]
-  make:model <Name>        Generate a model
-  make:middleware <Name>   Generate a middleware
-  make:migration <name>    Generate a migration
-  make:seeder <Name>       Generate a seeder
-  make:request <Name>      Generate a request validation
-  make:command <Name>      Generate a console command
-  make:event <Name>        Generate an event
-  make:listener <Name>     Generate an event listener
-  make:job <Name>          Generate a queue job
-  make:policy <Name>       Generate a policy
+Project Commands (run via ./ignite inside your project):
+  serve                 Start the development server [--host --port]
+  key:generate          Set the application encryption key
+  route:list            List registered routes
+  make:<type> <Name>    Scaffold controllers, models, migrations, etc.
+  migrate               Run pending migrations [migrate:rollback|fresh|...]
+  db:seed               Run database seeders [--class=SeederName]
+  queue:work            Process queued jobs [queue:listen|restart]
+  schedule:run          Run scheduled tasks [schedule:work]
 
-Database Commands:
-  migrate                Run pending migrations
-  migrate:rollback       Rollback last batch
-  migrate:refresh        Rollback and re-run migrations
-  migrate:fresh          Drop all tables and re-run [--seed]
-  db:seed                Run database seeders [--class=SeederName]
-
-Queue Commands:
-  queue:work             Process jobs
-  queue:listen           Listen for jobs
-  queue:restart          Restart queue worker
-
-Schedule Commands:
-  schedule:run           Run scheduled tasks
-  schedule:work          Start schedule worker
+A project's ./ignite uses the framework version pinned in its go.mod,
+so project commands never depend on this global binary's version.
 
 Run 'ignite help' for more information.`)
 }

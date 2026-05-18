@@ -56,6 +56,8 @@ func NewProject(name string) error {
 	files := map[string]string{
 		"go.mod":                       goModTemplate(modulePath),
 		"main.go":                      mainTemplate(modulePath),
+		"ignite":                       binIgniteTemplate(),
+		"ignite.bat":                   binIgniteBatTemplate(),
 		".env":                         envTemplate(name),
 		".env.example":                 envTemplate(name),
 		".gitignore":                   gitignoreTemplate(),
@@ -84,6 +86,11 @@ func NewProject(name string) error {
 		if err := os.WriteFile(fullPath, []byte(content), 0644); err != nil {
 			return err
 		}
+	}
+
+	// The project console wrapper must be executable.
+	if err := os.Chmod(filepath.Join(name, "ignite"), 0755); err != nil {
+		return err
 	}
 
 	// Create storage .gitignore files
@@ -144,6 +151,33 @@ func main() {
 	app.Run(routing.DefaultRouter)
 }
 `, modulePath)
+}
+
+// binIgniteTemplate is the project console wrapper, shipped at the project
+// root (the analog of Laravel's ./artisan). It runs the project's own main.go
+// dispatch, so commands use the framework version pinned in this project's
+// go.mod — no global install required.
+func binIgniteTemplate() string {
+	return `#!/usr/bin/env sh
+# Ignite project console.
+#
+# Runs project commands (serve, key:generate, migrate, make:*, ...) using the
+# framework version pinned in this project's go.mod. The global "ignite" binary
+# is only for creating new projects.
+#
+# Usage: ./ignite <command> [arguments] [flags]
+
+cd "$(dirname "$0")" || exit 1
+exec go run . "$@"
+`
+}
+
+func binIgniteBatTemplate() string {
+	return "@echo off\r\n" +
+		"REM Ignite project console. Runs project commands using the framework\r\n" +
+		"REM version pinned in this project's go.mod.\r\n" +
+		"cd /d \"%~dp0\"\r\n" +
+		"go run . %*\r\n"
 }
 
 func envTemplate(name string) string {
