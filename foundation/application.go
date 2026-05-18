@@ -419,20 +419,11 @@ func (app *Application) handleCommand(command string, args []string, router Rout
 		fmt.Printf("  ✓ Policy '%s' created.\n", positional[0])
 
 	// Database commands
-	case "migrate":
-		fmt.Println("  Running migrations...")
-
-	case "migrate:rollback":
-		fmt.Println("  Rolling back...")
-
-	case "migrate:refresh":
-		fmt.Println("  Refreshing...")
-
-	case "migrate:fresh":
-		_, withSeed := flags["seed"]
-		fmt.Println("  Dropping all tables and re-running migrations...")
-		if withSeed {
-			fmt.Println("  Seeding database...")
+	case "migrate", "migrate:rollback", "migrate:refresh",
+		"migrate:fresh", "migrate:reset", "migrate:status":
+		if err := app.runMigrate(command); err != nil {
+			fmt.Fprintf(os.Stderr, "  Error: %v\n", err)
+			os.Exit(1)
 		}
 
 	case "db:seed":

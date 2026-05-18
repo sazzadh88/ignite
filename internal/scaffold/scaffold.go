@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -62,6 +63,7 @@ func NewProject(name string) error {
 		".env.example":                 envTemplate(name),
 		".gitignore":                   gitignoreTemplate(),
 		"bootstrap/app.go":             bootstrapTemplate(modulePath),
+		"database/migrations/migrations.go": migrationsPackageTemplate(),
 		"config/config.go":             configLoaderTemplate(),
 		"config/app.go":                configAppTemplate(),
 		"config/database.go":           configDatabaseTemplate(),
@@ -131,6 +133,17 @@ func ignitePath() string {
 	return "../framework"
 }
 
+// migrationsPackageTemplate is the base file for the database/migrations
+// package so it compiles (and can be blank-imported) before any migrations
+// exist. Generated migrations register themselves via init().
+func migrationsPackageTemplate() string {
+	return `// Package migrations holds the application's database migrations.
+// Each migration file registers itself via schema.RegisterMigration in an
+// init() function; main.go blank-imports this package so they load.
+package migrations
+`
+}
+
 func mainTemplate(modulePath string) string {
 	return fmt.Sprintf(`package main
 
@@ -138,6 +151,7 @@ import (
 	"github.com/sazzadh88/ignite/foundation"
 	"github.com/sazzadh88/ignite/routing"
 	"%s/config"
+	_ "%s/database/migrations"
 	"%s/routes"
 )
 
@@ -155,7 +169,7 @@ func main() {
 	// Run the application
 	app.Run(routing.DefaultRouter)
 }
-`, modulePath, modulePath)
+`, modulePath, modulePath, modulePath)
 }
 
 // binIgniteTemplate is the project console wrapper, shipped at the project
@@ -193,12 +207,14 @@ APP_DEBUG=true
 APP_URL=http://localhost
 APP_PORT=8080
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=%s
-DB_USERNAME=root
-DB_PASSWORD=
+DB_CONNECTION=sqlite
+# Uncomment and set these to use mysql or pgsql instead of sqlite.
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=%s
+# DB_USERNAME=root
+# DB_PASSWORD=
+# DB_SOCKET=    # socket-only MySQL, e.g. /tmp/mysql.sock
 
 CACHE_DRIVER=file
 SESSION_DRIVER=file
@@ -300,12 +316,35 @@ func registerDatabase(c *icfg.Repository) {
 				"database": icfg.Env("DB_DATABASE", "database/database.sqlite"),
 			},
 			"mysql": map[string]any{
-				"driver":   "mysql",
-				"host":     icfg.Env("DB_HOST", "127.0.0.1"),
-				"port":     icfg.EnvInt("DB_PORT", 3306),
-				"database": icfg.Env("DB_DATABASE", "ignite"),
-				"username": icfg.Env("DB_USERNAME", "root"),
-				"password": icfg.Env("DB_PASSWORD", ""),
+				"driver":         "mysql",
+				"host":           icfg.Env("DB_HOST", "127.0.0.1"),
+				"port":           icfg.EnvInt("DB_PORT", 3306),
+				"database":       icfg.Env("DB_DATABASE", "ignite"),
+				"username":       icfg.Env("DB_USERNAME", "root"),
+				"password":       icfg.Env("DB_PASSWORD", ""),
+				"unix_socket":    icfg.Env("DB_SOCKET", ""),
+				"charset":        icfg.Env("DB_CHARSET", "utf8mb4"),
+				"prefix":         "",
+				"prefix_indexes": true,
+				"strict":         icfg.EnvBool("DB_STRICT", true),
+				"engine":         icfg.Env("DB_ENGINE", ""),
+				// TLS over TCP: prefer = encrypt if supported, else plaintext.
+				"sslmode": icfg.Env("DB_SSLMODE", "prefer"),
+			},
+			"pgsql": map[string]any{
+				"driver":         "postgres",
+				"host":           icfg.Env("DB_HOST", "127.0.0.1"),
+				"port":           icfg.EnvInt("DB_PORT", 5432),
+				"database":       icfg.Env("DB_DATABASE", "ignite"),
+				"username":       icfg.Env("DB_USERNAME", "root"),
+				"password":       icfg.Env("DB_PASSWORD", ""),
+				"charset":        icfg.Env("DB_CHARSET", "utf8"),
+				"prefix":         "",
+				"prefix_indexes": true,
+				"search_path":    icfg.Env("DB_SEARCH_PATH", "public"),
+				// "prefer": encrypted if the server supports SSL, else
+				// plaintext. Set DB_SSLMODE=require to force encryption.
+				"sslmode": icfg.Env("DB_SSLMODE", "prefer"),
 			},
 		},
 	})
@@ -803,29 +842,51 @@ func MakeMigration(name string) error {
 		return err
 	}
 	timestamp := time.Now().Format("2006_01_02_150405")
-	filename := fmt.Sprintf("%s_%s.go", timestamp, strings.ToLower(name))
+	lower := strings.ToLower(name)
+	migrationName := fmt.Sprintf("%s_%s", timestamp, lower)
+	filename := migrationName + ".go"
 	structName := toPascal(name)
+	table := tableFromMigrationName(lower)
 
 	content := fmt.Sprintf(`package migrations
+
+import "github.com/sazzadh88/ignite/schema"
+
+func init() {
+	schema.RegisterMigration("%s", &%s{})
+}
 
 // %s migration.
 type %s struct{}
 
 // Up runs the migration.
-func (m *%s) Up() {
-	// schema.Create("%s", func(t *Blueprint) {
-	//     t.ID()
-	//     t.Timestamps()
-	// })
+func (m *%s) Up(s *schema.Schema) error {
+	return s.Create("%s", func(t *schema.Blueprint) {
+		t.ID()
+		t.Timestamps()
+	})
 }
 
 // Down reverses the migration.
-func (m *%s) Down() {
-	// schema.DropIfExists("%s")
+func (m *%s) Down(s *schema.Schema) error {
+	return s.DropIfExists("%s")
 }
-`, structName, structName, structName, strings.ToLower(name)+"s", structName, strings.ToLower(name)+"s")
+`, migrationName, structName, structName, structName, structName, table, structName, table)
 
 	return os.WriteFile(filepath.Join(dir, filename), []byte(content), 0644)
+}
+
+// tableFromMigrationName extracts the target table from a conventional
+// migration name, e.g. "create_posts_table" -> "posts", "create_posts" ->
+// "posts". Non-conventional names fall back to the raw name.
+func tableFromMigrationName(lower string) string {
+	if m := regexp.MustCompile(`^create_(.+?)_table$`).FindStringSubmatch(lower); m != nil {
+		return m[1]
+	}
+	if m := regexp.MustCompile(`^create_(.+)$`).FindStringSubmatch(lower); m != nil {
+		return m[1]
+	}
+	return lower
 }
 
 // MakeSeeder generates a seeder file.

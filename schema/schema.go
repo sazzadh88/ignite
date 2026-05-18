@@ -1,9 +1,5 @@
 package schema
 
-import (
-	"fmt"
-)
-
 // Connection is an interface that represents a database connection.
 // This allows Schema to work with different database implementations
 // without depending on a specific ORM or database driver.
@@ -20,13 +16,20 @@ type Connection interface {
 // the appropriate SQL statements for the database.
 type Schema struct {
 	connection Connection
+	dialect    Dialect
 }
 
 // NewSchema creates a new Schema instance with the given database connection.
+// It defaults to the MySQL dialect to preserve historical behaviour; use
+// NewSchemaWithDriver to select a dialect by driver.
 func NewSchema(conn Connection) *Schema {
-	return &Schema{
-		connection: conn,
-	}
+	return &Schema{connection: conn, dialect: mysqlDialect{}}
+}
+
+// NewSchemaWithDriver creates a Schema whose SQL is compiled for the given
+// Go sql driver (sqlite3, mysql, postgres).
+func NewSchemaWithDriver(conn Connection, driver string) *Schema {
+	return &Schema{connection: conn, dialect: DialectFor(driver)}
 }
 
 // Create creates a new table with the given name using the Blueprint callback.
@@ -35,9 +38,12 @@ func (s *Schema) Create(table string, fn func(*Blueprint)) error {
 	blueprint := NewBlueprint()
 	fn(blueprint)
 
-	sql := blueprint.ToCreateSQL(table)
-	_, err := s.connection.Exec(sql)
-	return err
+	for _, stmt := range s.dialect.CompileCreate(table, blueprint) {
+		if _, err := s.connection.Exec(stmt); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Table modifies an existing table using the Blueprint callback.
@@ -46,58 +52,44 @@ func (s *Schema) Table(table string, fn func(*Blueprint)) error {
 	blueprint := NewBlueprint()
 	fn(blueprint)
 
-	sql := blueprint.ToAlterSQL(table)
-	if sql == "" {
-		return nil
+	for _, stmt := range s.dialect.CompileAlter(table, blueprint) {
+		if _, err := s.connection.Exec(stmt); err != nil {
+			return err
+		}
 	}
-
-	_, err := s.connection.Exec(sql)
-	return err
+	return nil
 }
 
 // Drop drops the specified table.
 func (s *Schema) Drop(table string) error {
-	sql := fmt.Sprintf("DROP TABLE `%s`", table)
-	_, err := s.connection.Exec(sql)
+	_, err := s.connection.Exec(s.dialect.CompileDrop(table))
 	return err
 }
 
 // DropIfExists drops the specified table if it exists.
 func (s *Schema) DropIfExists(table string) error {
-	sql := fmt.Sprintf("DROP TABLE IF EXISTS `%s`", table)
-	_, err := s.connection.Exec(sql)
+	_, err := s.connection.Exec(s.dialect.CompileDropIfExists(table))
 	return err
 }
 
 // Rename renames a table from the old name to the new name.
 func (s *Schema) Rename(from, to string) error {
-	sql := fmt.Sprintf("RENAME TABLE `%s` TO `%s`", from, to)
-	_, err := s.connection.Exec(sql)
+	_, err := s.connection.Exec(s.dialect.CompileRename(from, to))
 	return err
 }
 
 // HasTable checks if the specified table exists in the database.
 func (s *Schema) HasTable(table string) bool {
-	sql := "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?"
-	results, err := s.connection.Query(sql, table)
-	if err != nil || len(results) == 0 {
-		return false
-	}
-
-	count, ok := results[0]["count"].(int64)
-	return ok && count > 0
+	sql, args := s.dialect.CompileTableExists(table)
+	results, err := s.connection.Query(sql, args...)
+	return err == nil && len(results) > 0
 }
 
 // HasColumn checks if the specified column exists in the table.
 func (s *Schema) HasColumn(table, column string) bool {
-	sql := "SELECT COUNT(*) as count FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?"
-	results, err := s.connection.Query(sql, table, column)
-	if err != nil || len(results) == 0 {
-		return false
-	}
-
-	count, ok := results[0]["count"].(int64)
-	return ok && count > 0
+	sql, args := s.dialect.CompileColumnExists(table, column)
+	results, err := s.connection.Query(sql, args...)
+	return err == nil && len(results) > 0
 }
 
 // GetColumnType returns the data type of the specified column in the table.
@@ -117,7 +109,6 @@ func (s *Schema) GetColumnType(table, column string) string {
 
 // Truncate removes all rows from the specified table.
 func (s *Schema) Truncate(table string) error {
-	sql := fmt.Sprintf("TRUNCATE TABLE `%s`", table)
-	_, err := s.connection.Exec(sql)
+	_, err := s.connection.Exec(s.dialect.CompileTruncate(table))
 	return err
 }

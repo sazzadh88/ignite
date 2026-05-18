@@ -29,12 +29,38 @@ func (app *Application) loadConfiguration() {
 				"database": config.Env("DB_DATABASE", "database/database.sqlite"),
 			},
 			"mysql": map[string]any{
-				"driver":   "mysql",
-				"host":     config.Env("DB_HOST", "127.0.0.1"),
-				"port":     config.EnvInt("DB_PORT", 3306),
-				"database": config.Env("DB_DATABASE", "ignite"),
-				"username": config.Env("DB_USERNAME", "root"),
-				"password": config.Env("DB_PASSWORD", ""),
+				"driver":         "mysql",
+				"host":           config.Env("DB_HOST", "127.0.0.1"),
+				"port":           config.EnvInt("DB_PORT", 3306),
+				"database":       config.Env("DB_DATABASE", "ignite"),
+				"username":       config.Env("DB_USERNAME", "root"),
+				"password":       config.Env("DB_PASSWORD", ""),
+				"unix_socket":    config.Env("DB_SOCKET", ""),
+				"charset":        config.Env("DB_CHARSET", "utf8mb4"),
+				"prefix":         "",
+				"prefix_indexes": true,
+				"strict":         config.EnvBool("DB_STRICT", true),
+				"engine":         config.Env("DB_ENGINE", ""),
+				// TLS over TCP: prefer = encrypt if the server supports it,
+				// else plaintext. Ignored for unix-socket connections.
+				"sslmode": config.Env("DB_SSLMODE", "prefer"),
+			},
+			"pgsql": map[string]any{
+				"driver":         "postgres",
+				"host":           config.Env("DB_HOST", "127.0.0.1"),
+				"port":           config.EnvInt("DB_PORT", 5432),
+				"database":       config.Env("DB_DATABASE", "ignite"),
+				"username":       config.Env("DB_USERNAME", "root"),
+				"password":       config.Env("DB_PASSWORD", ""),
+				"charset":        config.Env("DB_CHARSET", "utf8"),
+				"prefix":         "",
+				"prefix_indexes": true,
+				"search_path":    config.Env("DB_SEARCH_PATH", "public"),
+				// "prefer" (Laravel's default): the database layer tries an
+				// encrypted connection first and falls back to plaintext only
+				// if the server has no SSL. Set DB_SSLMODE=require/verify-full
+				// to force encryption.
+				"sslmode": config.Env("DB_SSLMODE", "prefer"),
 			},
 		},
 	})
