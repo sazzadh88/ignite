@@ -100,10 +100,12 @@ ignite new myapp
 
 <span class="comment"># Navigate into your project</span>
 cd myapp
+go mod tidy
 
-<span class="comment"># Start the development server</span>
-ignite serve</code></pre>
-          <p>Your app is now running at <code>http://localhost:8000</code></p>
+<span class="comment"># Set the app key, then start the dev server</span>
+./ignite key:generate
+./ignite serve</code></pre>
+          <p>Your app is now running at <code>http://localhost:8080</code></p>
         </div>
       </section>
 

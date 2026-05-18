@@ -85,12 +85,13 @@ source ~/.bashrc</code></pre>
 │   └── requests/       <span class="comment"># Form request validation</span>
 │       └── CreateUserRequest.go
 ├── config/
-│   ├── app.go          <span class="comment"># Application config</span>
-│   ├── database.go     <span class="comment"># Database config</span>
-│   └── cache.go        <span class="comment"># Cache config</span>
+│   ├── config.go       <span class="comment"># Loads project config onto framework defaults</span>
+│   ├── app.go          <span class="comment"># Application config (reads .env)</span>
+│   └── database.go     <span class="comment"># Database config (reads .env)</span>
 ├── database/
 │   ├── migrations/     <span class="comment"># Database migrations</span>
-│   │   └── 2026_05_17_create_users_table.go
+│   │   ├── migrations.go   <span class="comment"># package base (always present)</span>
+│   │   └── 2026_05_17_120000_create_users_table.go
 │   └── seeders/       <span class="comment"># Database seeders</span>
 │       └── UserSeeder.go
 ├── routes/
@@ -102,6 +103,8 @@ source ~/.bashrc</code></pre>
 ├── storage/
 │   ├── logs/          <span class="comment"># Application logs</span>
 │   └── uploads/       <span class="comment"># File uploads</span>
+├── ignite             <span class="comment"># Project console (./ignite serve, migrate, ...)</span>
+├── ignite.bat         <span class="comment"># Windows project console</span>
 ├── .env               <span class="comment"># Environment variables</span>
 ├── go.mod
 └── main.go            <span class="comment"># Application entry point</span></code></pre>
@@ -113,43 +116,47 @@ source ~/.bashrc</code></pre>
         <p>Ignite uses environment variables for configuration. The <code>.env</code> file in your project root contains all configuration values:</p>
         <pre><code><span class="comment"># Application</span>
 APP_NAME=MyApp
-APP_ENV=development
-APP_KEY=base64:YOUR_APP_KEY_HERE
+APP_ENV=local
+APP_KEY=
 APP_DEBUG=true
-APP_URL=http://localhost:8080
+APP_URL=http://localhost
+APP_PORT=8080
 
-<span class="comment"># Database</span>
+<span class="comment"># Database (sqlite is the zero-config default)</span>
 DB_CONNECTION=sqlite
-DB_DATABASE=database.db
+<span class="comment"># DB_HOST=127.0.0.1</span>
+<span class="comment"># DB_PORT=3306</span>
+<span class="comment"># DB_DATABASE=myapp</span>
+<span class="comment"># DB_USERNAME=root</span>
+<span class="comment"># DB_PASSWORD=</span>
 
-<span class="comment"># Cache</span>
-CACHE_DRIVER=memory
-
-<span class="comment"># Queue</span>
-QUEUE_DRIVER=memory
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_CONNECTION=sync
 
 <span class="comment"># Mail</span>
-MAIL_DRIVER=smtp
-MAIL_HOST=smtp.mailtrap.io
-MAIL_PORT=2525
-MAIL_USERNAME=
-MAIL_PASSWORD=
-MAIL_FROM_ADDRESS=hello@example.com
-MAIL_FROM_NAME=MyApp</code></pre>
-        <p><strong>Important:</strong> Never commit your <code>.env</code> file to version control. It contains sensitive credentials.</p>
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"</code></pre>
+        <p>The <code>.env</code> values are mapped into the config repository at bootstrap and read via <code>app.Config()</code> (Laravel-style) &mdash; never read the environment directly. <strong>Important:</strong> never commit <code>.env</code> to version control.</p>
 
         <h3>Generating an Application Key</h3>
-        <p>Your application key is used for encryption. Generate a secure key with:</p>
-        <pre><code>ignite key:generate</code></pre>
+        <p>Your application key is used for encryption. Generate a secure key from your project directory:</p>
+        <pre><code>./ignite key:generate</code></pre>
+        <p>This writes a <code>base64:</code> key into your <code>.env</code>. The development server will refuse to start until a valid <code>APP_KEY</code> is set.</p>
       </section>
 
       <!-- Running the Server -->
       <section class="section">
         <h2 class="section-title">Running the Development Server</h2>
-        <p>Start the built-in development server:</p>
-        <pre><code>go run main.go serve</code></pre>
+        <p>Every project ships an <code>./ignite</code> console (the project-local CLI). Start the built-in development server with:</p>
+        <pre><code>./ignite serve</code></pre>
         <p>By default, your application will be available at <code>http://localhost:8080</code>. You can specify a different host or port:</p>
-        <pre><code>go run main.go serve --host=0.0.0.0 --port=9000</code></pre>
+        <pre><code>./ignite serve --host=0.0.0.0 --port=9000</code></pre>
       </section>
 
       <!-- Your First Route -->
@@ -190,7 +197,7 @@ MAIL_FROM_NAME=MyApp</code></pre>
       <section class="section">
         <h2 class="section-title">Your First Controller</h2>
         <p>Controllers help organize request handling logic. Create a new controller:</p>
-        <pre><code>ignite make:controller UserController</code></pre>
+        <pre><code>./ignite make:controller UserController</code></pre>
         <p>This creates <code>app/controllers/UserController.go</code>:</p>
         <pre><code><span class="keyword">package</span> controllers
 
@@ -240,21 +247,26 @@ DB_USERNAME=root
 DB_PASSWORD=</code></pre>
 
         <h3>PostgreSQL</h3>
-        <pre><code>DB_CONNECTION=postgres
+        <pre><code>DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_DATABASE=myapp
 DB_USERNAME=postgres
 DB_PASSWORD=</code></pre>
+        <p>SQLite is the zero-config default and needs no server. For MySQL/PostgreSQL just set <code>DB_CONNECTION</code> and the matching <code>DB_*</code> values — no code changes. (MySQL also supports <code>DB_SOCKET</code> for socket-only servers; Postgres <code>DB_SSLMODE</code> defaults to <code>prefer</code> — encrypted if the server supports it, plaintext otherwise.)</p>
 
         <p>Run migrations to set up your database schema:</p>
-        <pre><code>ignite migrate</code></pre>
+        <pre><code>./ignite migrate</code></pre>
       </section>
 
       <!-- CLI Commands -->
       <section class="section">
         <h2 class="section-title">Useful CLI Commands</h2>
-        <p>Ignite includes a powerful CLI for scaffolding and managing your application:</p>
+        <p>Ignite has two CLIs, following the Rails model:</p>
+        <ul>
+          <li><strong>Global <code>ignite</code></strong> &mdash; the installer. Only <code>ignite new</code>, <code>ignite version</code>, and <code>ignite upgrade</code>.</li>
+          <li><strong>Project <code>./ignite</code></strong> &mdash; shipped in every project root. Runs all project commands using the framework version pinned in that project's <code>go.mod</code> (no global reinstall needed).</li>
+        </ul>
         <table>
           <thead>
             <tr>
@@ -265,46 +277,54 @@ DB_PASSWORD=</code></pre>
           <tbody>
             <tr>
               <td><code>ignite new [name]</code></td>
-              <td>Create a new project</td>
+              <td>Create a new project (global installer)</td>
             </tr>
             <tr>
-              <td><code>ignite serve</code></td>
-              <td>Start development server</td>
+              <td><code>./ignite serve</code></td>
+              <td>Start development server (requires APP_KEY)</td>
             </tr>
             <tr>
-              <td><code>ignite make:controller [name]</code></td>
+              <td><code>./ignite key:generate</code></td>
+              <td>Set the application encryption key</td>
+            </tr>
+            <tr>
+              <td><code>./ignite make:controller [name]</code></td>
               <td>Create a controller</td>
             </tr>
             <tr>
-              <td><code>ignite make:model [name]</code></td>
+              <td><code>./ignite make:model [name]</code></td>
               <td>Create a model</td>
             </tr>
             <tr>
-              <td><code>ignite make:migration [name]</code></td>
+              <td><code>./ignite make:migration [name]</code></td>
               <td>Create a migration</td>
             </tr>
             <tr>
-              <td><code>ignite make:middleware [name]</code></td>
+              <td><code>./ignite make:middleware [name]</code></td>
               <td>Create middleware</td>
             </tr>
             <tr>
-              <td><code>ignite migrate</code></td>
+              <td><code>./ignite migrate</code></td>
               <td>Run database migrations</td>
             </tr>
             <tr>
-              <td><code>ignite migrate:rollback</code></td>
-              <td>Rollback last migration</td>
+              <td><code>./ignite migrate:rollback</code></td>
+              <td>Rollback last batch</td>
             </tr>
             <tr>
-              <td><code>ignite db:seed</code></td>
+              <td><code>./ignite migrate:status</code></td>
+              <td>Show migration status</td>
+            </tr>
+            <tr>
+              <td><code>./ignite db:seed</code></td>
               <td>Seed the database</td>
             </tr>
             <tr>
-              <td><code>ignite queue:work</code></td>
+              <td><code>./ignite queue:work</code></td>
               <td>Start queue worker</td>
             </tr>
             <tr>
-              <td><code>ignite schedule:run</code></td>
+              <td><code>./ignite schedule:run</code></td>
               <td>Run scheduled tasks</td>
             </tr>
           </tbody>
