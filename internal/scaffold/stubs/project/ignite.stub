@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# Ignite project console.
+#
+# Runs project commands (serve, key:generate, migrate, make:*, ...) using the
+# framework version pinned in this project's go.mod. The global "ignite" binary
+# is only for creating new projects.
+#
+# Usage: ./ignite <command> [arguments] [flags]
+
+cd "$(dirname "$0")" || exit 1
+exec go run . "$@"

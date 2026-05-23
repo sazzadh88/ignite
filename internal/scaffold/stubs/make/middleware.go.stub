@@ -1,0 +1,12 @@
+package Middleware
+
+import "net/http"
+
+// __NAME__ middleware.
+type __NAME__ struct{}
+
+// Handle processes the request.
+func (m *__NAME__) Handle(w http.ResponseWriter, r *http.Request, next http.Handler) {
+	// TODO: implement middleware logic
+	next.ServeHTTP(w, r)
+}

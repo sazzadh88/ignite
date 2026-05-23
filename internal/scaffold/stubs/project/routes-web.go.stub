@@ -1,0 +1,52 @@
+package routes
+
+import (
+	"net/http"
+	"runtime"
+
+	"github.com/sazzadh88/ignite/foundation"
+	"github.com/sazzadh88/ignite/routing"
+	"github.com/sazzadh88/ignite/view"
+
+	"__MOD__/app/Http/Controllers"
+	"__MOD__/app/appauth"
+	"__MOD__/app/appcsrf"
+)
+
+// RegisterWeb defines web routes. A working authentication flow ships
+// out of the box: register, login, logout, and a protected dashboard.
+func RegisterWeb() {
+	r := routing.DefaultRouter
+	ac := &Controllers.AuthController{}
+
+	r.Get("/", routing.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		user := appauth.Current(w, req)
+		engine := view.NewEngine("resources/views")
+		html, err := engine.Render("welcome", map[string]any{
+			"frameworkVersion": foundation.Version,
+			"goVersion":        runtime.Version(),
+			"Auth":             user != nil,
+			"CSRFToken":        appcsrf.Token(req),
+		})
+		if err != nil {
+			http.Error(w, "View error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write([]byte(html))
+	})).Name("home")
+
+	r.Get("/register", routing.HandlerFunc(ac.ShowRegister)).Name("register")
+	r.Post("/register", routing.HandlerFunc(ac.Register))
+	r.Get("/login", routing.HandlerFunc(ac.ShowLogin)).Name("login")
+	r.Post("/login", routing.HandlerFunc(ac.Login))
+	r.Post("/logout", routing.HandlerFunc(ac.Logout)).Name("logout")
+	r.Get("/dashboard", routing.HandlerFunc(appauth.RequireAuth(ac.Dashboard))).Name("dashboard")
+	r.Get("/profile", routing.HandlerFunc(appauth.RequireAuth(ac.ShowProfile))).Name("profile")
+	r.Post("/profile", routing.HandlerFunc(appauth.RequireAuth(ac.UpdateProfile)))
+	r.Get("/change-password", routing.HandlerFunc(appauth.RequireAuth(ac.ShowChangePassword))).Name("change-password")
+	r.Post("/change-password", routing.HandlerFunc(appauth.RequireAuth(ac.ChangePassword)))
+
+	// Fallback: styled 404 error page for unmatched routes.
+	r.Fallback(routing.HandlerFunc(appcsrf.NotFoundHandler))
+}

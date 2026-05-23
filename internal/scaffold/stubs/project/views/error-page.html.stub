@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>%d %s - Ignite</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background:
+        radial-gradient(900px circle at 12%% -10%%, rgba(99,102,241,0.14), transparent 45%%),
+        radial-gradient(800px circle at 90%% 0%%, rgba(236,72,153,0.10), transparent 42%%),
+        #0b1020;
+    color: #e2e8f0; padding: 2rem;
+}
+.glow { position: fixed; border-radius: 50%%; filter: blur(90px);
+    opacity: 0.4; z-index: 0; pointer-events: none;
+    animation: float 14s ease-in-out infinite; }
+.glow.a { width: 350px; height: 350px; top: -100px; left: -60px;
+    background: radial-gradient(circle, #6366f1, transparent 70%%); }
+.glow.b { width: 400px; height: 400px; bottom: -140px; right: -100px;
+    background: radial-gradient(circle, #ec4899, transparent 70%%);
+    animation-delay: -7s; }
+@keyframes float { 0%%,100%% { transform: translateY(0) scale(1); }
+    50%% { transform: translateY(-20px) scale(1.04); } }
+.card {
+    position: relative; z-index: 1; text-align: center;
+    max-width: 480px; width: 100%%;
+    background: rgba(15,23,42,0.72); border: 1px solid rgba(148,163,184,0.16);
+    border-radius: 18px; padding: 3rem 2.5rem; backdrop-filter: blur(14px);
+    box-shadow: 0 30px 70px -28px rgba(0,0,0,0.75);
+    animation: rise .5s ease both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.code {
+    font-size: 5rem; font-weight: 850; line-height: 1;
+    background: linear-gradient(110deg, #818cf8, #c084fc 45%%, #f472b6);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: .5rem;
+}
+h1 { font-size: 1.4rem; color: #f1f5f9; margin-bottom: .7rem; letter-spacing: -0.02em; }
+p { color: #94a3b8; font-size: .95rem; line-height: 1.6; margin-bottom: 2rem; }
+.btn {
+    display: inline-block; padding: .8rem 1.6rem; border-radius: 10px;
+    font-size: .92rem; font-weight: 600; text-decoration: none; color: #e2e8f0;
+    background: rgba(148,163,184,0.08); border: 1px solid rgba(148,163,184,0.2);
+    transition: background .15s, border-color .15s, transform .12s;
+}
+.btn:hover { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.4); transform: translateY(-1px); }
+</style>
+</head>
+<body>
+<div class="glow a"></div>
+<div class="glow b"></div>
+<div class="card">
+    <div class="code">%d</div>
+    <h1>%s</h1>
+    <p>%s</p>
+    <a class="btn" href="javascript:history.back()">&#8592; Go Back</a>
+</div>
+</body>
+</html>

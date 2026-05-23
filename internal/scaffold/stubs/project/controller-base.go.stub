@@ -1,0 +1,4 @@
+package Controllers
+
+// Controller is the base controller that other controllers embed.
+type Controller struct{}

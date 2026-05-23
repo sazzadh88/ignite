@@ -1,0 +1,16 @@
+package Providers
+
+import "github.com/sazzadh88/ignite/foundation"
+
+// AppServiceProvider registers application services.
+type AppServiceProvider struct{}
+
+// Register is called during registration phase.
+func (p *AppServiceProvider) Register(app *foundation.Application) {
+	// Register application bindings
+}
+
+// Boot is called after all providers are registered.
+func (p *AppServiceProvider) Boot(app *foundation.Application) {
+	// Boot application services
+}

@@ -1,0 +1,27 @@
+package Jobs
+
+import "time"
+
+// __NAME__ is a queue job.
+type __NAME__ struct{}
+
+// Handle executes the job.
+func (j *__NAME__) Handle() error {
+	// TODO: implement
+	return nil
+}
+
+// Queue returns the queue name.
+func (j *__NAME__) Queue() string {
+	return "default"
+}
+
+// Tries returns the number of attempts.
+func (j *__NAME__) Tries() int {
+	return 3
+}
+
+// Timeout returns the job timeout.
+func (j *__NAME__) Timeout() time.Duration {
+	return 30 * time.Second
+}

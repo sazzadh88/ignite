@@ -1,0 +1,160 @@
+// Package appauth wires the framework auth package to HTTP using an
+// encrypted session cookie. The framework does not HTTP-wire auth itself,
+// and its router does not run middleware, so route protection is a handler
+// wrapper.
+package appauth
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/sazzadh88/ignite/auth"
+	"github.com/sazzadh88/ignite/encryption"
+	"github.com/sazzadh88/ignite/hashing"
+
+	"__MOD__/app/Models"
+	"__MOD__/app/repositories"
+)
+
+const cookieName = "ignite_session"
+
+// cookieSession is an auth.Session backed by an encrypted cookie.
+type cookieSession struct {
+	w      http.ResponseWriter
+	r      *http.Request
+	data   map[string]any
+	loaded bool
+}
+
+func (s *cookieSession) load() {
+	if s.loaded {
+		return
+	}
+	s.loaded = true
+	s.data = map[string]any{}
+	if s.r == nil || encryption.Crypt == nil {
+		return
+	}
+	c, err := s.r.Cookie(cookieName)
+	if err != nil || c.Value == "" {
+		return
+	}
+	plain, err := encryption.Crypt.DecryptString(c.Value)
+	if err != nil {
+		return
+	}
+	_ = json.Unmarshal([]byte(plain), &s.data)
+}
+
+func (s *cookieSession) save() {
+	if s.w == nil || encryption.Crypt == nil {
+		return
+	}
+	b, _ := json.Marshal(s.data)
+	enc, err := encryption.Crypt.EncryptString(string(b))
+	if err != nil {
+		return
+	}
+	http.SetCookie(s.w, &http.Cookie{
+		Name:     cookieName,
+		Value:    enc,
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func (s *cookieSession) Get(key string) (any, bool) {
+	s.load()
+	v, ok := s.data[key]
+	return v, ok
+}
+
+func (s *cookieSession) Put(key, value any) {
+	s.load()
+	s.data[fmt.Sprint(key)] = value
+	s.save()
+}
+
+func (s *cookieSession) Forget(key string) {
+	s.load()
+	delete(s.data, key)
+	s.save()
+}
+
+func (s *cookieSession) Flush() {
+	s.load()
+	s.data = map[string]any{}
+	s.save()
+}
+
+func provider() auth.UserProvider {
+	return auth.NewCallbackProvider(
+		func(id any) (auth.Authenticatable, error) {
+			u, err := repositories.FindByID(id)
+			if err != nil {
+				return nil, err
+			}
+			return u, nil
+		},
+		func(creds map[string]string) (auth.Authenticatable, error) {
+			u, err := repositories.FindByEmail(creds["email"])
+			if err != nil {
+				return nil, err
+			}
+			return u, nil
+		},
+		func(user auth.Authenticatable, creds map[string]string) bool {
+			return hashing.Hash.Check(creds["password"], user.GetAuthPassword())
+		},
+	)
+}
+
+// Guard builds a request-scoped session guard.
+func Guard(w http.ResponseWriter, r *http.Request) *auth.SessionGuard {
+	return auth.NewSessionGuard(provider(), &cookieSession{w: w, r: r})
+}
+
+// Attempt validates credentials and, on success, logs the user in.
+func Attempt(w http.ResponseWriter, r *http.Request, email, password string) bool {
+	return Guard(w, r).Attempt(map[string]string{"email": email, "password": password})
+}
+
+// LoginUser logs a user in directly (used after registration).
+func LoginUser(w http.ResponseWriter, r *http.Request, u *Models.User) {
+	Guard(w, r).Login(u)
+}
+
+// Logout clears the session cookie.
+func Logout(w http.ResponseWriter, r *http.Request) {
+	Guard(w, r).Logout()
+}
+
+// Current returns the authenticated user, or nil for a guest.
+func Current(w http.ResponseWriter, r *http.Request) *Models.User {
+	au := Guard(w, r).User()
+	if au == nil {
+		return nil
+	}
+	if u, ok := au.(*Models.User); ok {
+		return u
+	}
+	return nil
+}
+
+// RedirectTo is the default post-login redirect URL.
+var RedirectTo = "/dashboard"
+
+// RequireAuth wraps a handler, redirecting guests to /login with an
+// ?intended= query parameter so the login handler can redirect back.
+func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !Guard(w, r).Check() {
+			dest := "/login?intended=" + r.URL.Path
+			http.Redirect(w, r, dest, http.StatusFound)
+			return
+		}
+		next(w, r)
+	}
+}

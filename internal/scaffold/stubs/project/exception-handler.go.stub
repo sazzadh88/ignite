@@ -1,0 +1,16 @@
+package Exceptions
+
+import "net/http"
+
+// Handler is the application exception handler.
+type Handler struct{}
+
+// Report reports an exception.
+func (h *Handler) Report(err error) {
+	// Log the exception
+}
+
+// Render renders an exception into an HTTP response.
+func (h *Handler) Render(w http.ResponseWriter, r *http.Request, err error) {
+	http.Error(w, err.Error(), http.StatusInternalServerError)
+}

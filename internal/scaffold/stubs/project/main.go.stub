@@ -1,0 +1,33 @@
+package main
+
+import (
+	"log"
+
+	"github.com/sazzadh88/ignite/foundation"
+	"github.com/sazzadh88/ignite/routing"
+	"__MOD__/app/appcsrf"
+	"__MOD__/app/projdb"
+	"__MOD__/config"
+	_ "__MOD__/database/migrations"
+	"__MOD__/routes"
+)
+
+func main() {
+	app := foundation.NewApplication(".")
+	app.Bootstrap()
+
+	// Apply project configuration on top of framework defaults.
+	config.Load(app.Config())
+
+	// Open the default database connection for repositories.
+	if err := projdb.Init(app.Config()); err != nil {
+		log.Println("database:", err)
+	}
+
+	// Register routes
+	routes.RegisterWeb()
+	routes.RegisterAPI()
+
+	// Run the application (CSRF-protected router).
+	app.Run(appcsrf.Protect(routing.DefaultRouter))
+}

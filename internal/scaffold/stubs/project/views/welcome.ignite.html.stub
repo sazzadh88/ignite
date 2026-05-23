@@ -1,0 +1,163 @@
+@extends("layouts.app")
+
+@section("title")
+Ignite — Web artisan meets Go performance
+@endsection
+
+@section("styles")
+    body {
+        background:
+            radial-gradient(900px circle at 12% -10%, rgba(99,102,241,0.18), transparent 45%),
+            radial-gradient(800px circle at 90% 0%, rgba(236,72,153,0.14), transparent 42%),
+            #0b1020;
+        overflow-x: hidden;
+    }
+    .glow {
+        position: fixed; border-radius: 50%; filter: blur(90px);
+        opacity: 0.55; z-index: 0; pointer-events: none;
+        animation: float 14s ease-in-out infinite;
+    }
+    .glow.a { width: 420px; height: 420px; top: -120px; left: -80px;
+        background: radial-gradient(circle, #6366f1, transparent 70%); }
+    .glow.b { width: 480px; height: 480px; bottom: -160px; right: -120px;
+        background: radial-gradient(circle, #ec4899, transparent 70%);
+        animation-delay: -7s; }
+    @keyframes float {
+        0%,100% { transform: translateY(0) scale(1); }
+        50%     { transform: translateY(-26px) scale(1.06); }
+    }
+    .wrap {
+        position: relative; z-index: 1;
+        max-width: 1040px; margin: 0 auto;
+        padding: 7rem 1.5rem 4rem; text-align: center;
+    }
+    .badge {
+        display: inline-flex; align-items: center; gap: .5rem;
+        padding: .4rem .9rem; border-radius: 999px;
+        background: rgba(148,163,184,0.08);
+        border: 1px solid rgba(148,163,184,0.18);
+        color: #cbd5e1; font-size: .8rem; letter-spacing: .02em;
+        backdrop-filter: blur(8px);
+        animation: rise .6s ease both;
+    }
+    .badge .dot { width: 7px; height: 7px; border-radius: 50%;
+        background: #34d399; box-shadow: 0 0 10px #34d399; }
+    .logo {
+        font-size: clamp(3rem, 9vw, 6rem); font-weight: 850;
+        line-height: 1.05; margin: 1.4rem 0 .4rem; letter-spacing: -0.03em;
+        background: linear-gradient(110deg, #818cf8, #c084fc 45%, #f472b6);
+        background-size: 220% 220%;
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: rise .6s .05s ease both, shimmer 7s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+        0%,100% { background-position: 0% 50%; }
+        50%     { background-position: 100% 50%; }
+    }
+    .tag { font-size: clamp(1.05rem, 2.4vw, 1.4rem); color: #94a3b8;
+        max-width: 620px; margin: 0 auto 2.4rem; line-height: 1.6;
+        animation: rise .6s .12s ease both; }
+    .tag b { color: #e2e8f0; font-weight: 600; }
+    .cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+        animation: rise .6s .18s ease both; }
+    .btn { padding: .85rem 1.8rem; border-radius: 12px; font-weight: 650;
+        font-size: .98rem; text-decoration: none; transition: transform .15s, box-shadow .2s, background .2s; }
+    .btn.primary { color: #fff;
+        background: linear-gradient(120deg, #6366f1, #a855f7);
+        box-shadow: 0 10px 30px -8px rgba(124,58,237,0.65); }
+    .btn.primary:hover { transform: translateY(-2px);
+        box-shadow: 0 16px 40px -8px rgba(124,58,237,0.8); }
+    .btn.ghost { color: #e2e8f0;
+        background: rgba(148,163,184,0.06);
+        border: 1px solid rgba(148,163,184,0.22); backdrop-filter: blur(8px); }
+    .btn.ghost:hover { transform: translateY(-2px); background: rgba(148,163,184,0.12); }
+    .term {
+        margin: 3rem auto 0; max-width: 560px; text-align: left;
+        background: rgba(15,23,42,0.7); border: 1px solid rgba(148,163,184,0.16);
+        border-radius: 14px; overflow: hidden; backdrop-filter: blur(10px);
+        box-shadow: 0 24px 60px -24px rgba(0,0,0,0.7);
+        animation: rise .6s .24s ease both;
+    }
+    .term .bar { display: flex; gap: .45rem; padding: .8rem 1rem;
+        border-bottom: 1px solid rgba(148,163,184,0.12); }
+    .term .bar i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+    .term .bar i:nth-child(1){ background:#ef4444; }
+    .term .bar i:nth-child(2){ background:#f59e0b; }
+    .term .bar i:nth-child(3){ background:#22c55e; }
+    .term pre { margin: 0; padding: 1.1rem 1.3rem; font-size: .9rem; line-height: 1.85;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #cbd5e1; }
+    .term .c { color: #64748b; }
+    .term .g { color: #34d399; }
+    .grid { display: grid; gap: 1.1rem; margin: 4rem 0 0;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+    .feat { position: relative; text-align: left; padding: 1.5rem;
+        background: rgba(148,163,184,0.05);
+        border: 1px solid rgba(148,163,184,0.14);
+        border-radius: 14px; overflow: hidden;
+        transition: transform .18s, border-color .2s, background .2s; }
+    .feat::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px;
+        background: linear-gradient(90deg, #6366f1, #ec4899);
+        transform: scaleX(0); transform-origin: left; transition: transform .25s; }
+    .feat:hover { transform: translateY(-4px); background: rgba(148,163,184,0.09);
+        border-color: rgba(129,140,248,0.5); }
+    .feat:hover::before { transform: scaleX(1); }
+    .feat h3 { font-size: 1.02rem; color: #f1f5f9; margin-bottom: .45rem; }
+    .feat p { font-size: .88rem; color: #94a3b8; line-height: 1.55; }
+    .foot { margin-top: 4.5rem; padding-top: 2rem;
+        border-top: 1px solid rgba(148,163,184,0.12); }
+    .foot .links { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; }
+    .foot a { color: #818cf8; text-decoration: none; font-size: .9rem; }
+    .foot a:hover { color: #a5b4fc; }
+    .foot .ver { margin-top: 1.2rem; color: #475569; font-size: .8rem; }
+    @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    @media (max-width: 640px) { .wrap { padding-top: 4.5rem; } }
+@endsection
+
+@section("content")
+    <div class="glow a"></div>
+    <div class="glow b"></div>
+    <div class="wrap">
+        <span class="badge"><span class="dot"></span> Ignite v{{ .frameworkVersion }} &middot; {{ .goVersion }}</span>
+
+        <h1 class="logo">Ignite</h1>
+        <p class="tag">Your application is <b>live</b>. A full authentication flow ships out of the box &mdash; <b>register, log in, and a protected dashboard</b>, ready to build on.</p>
+
+        <div class="cta">
+            @auth
+            <a class="btn primary" href="/dashboard">Dashboard &rarr;</a>
+            @endauth
+            @guest
+            <a class="btn primary" href="/register">Get started &rarr;</a>
+            <a class="btn ghost" href="/login">Log in</a>
+            @endguest
+        </div>
+
+        <div class="term">
+            <div class="bar"><i></i><i></i><i></i></div>
+            <pre><span class="c"># scaffold, migrate, and serve</span>
+ignite new myapp
+<span class="g">./ignite</span> key:generate
+<span class="g">./ignite</span> migrate
+<span class="g">./ignite</span> serve</pre>
+        </div>
+
+        <div class="grid">
+            <div class="feat"><h3>Routing</h3><p>Expressive routes with groups, named routes, and resource controllers.</p></div>
+            <div class="feat"><h3>Authentication</h3><p>Register / login / logout and a protected dashboard, generated for you.</p></div>
+            <div class="feat"><h3>Migrations</h3><p>Self-registering migrations across SQLite, MySQL, and PostgreSQL.</p></div>
+            <div class="feat"><h3>Config</h3><p>.env mapped into a typed config repository, Laravel-style.</p></div>
+            <div class="feat"><h3>Queue &amp; Jobs</h3><p>Background processing with retries, chains, and batches.</p></div>
+            <div class="feat"><h3>Project Console</h3><p>Run everything through the project-local <code>./ignite</code> CLI.</p></div>
+        </div>
+
+        <div class="foot">
+            <div class="links">
+                <a href="https://github.com/sazzadh88/ignite">Documentation</a>
+                <a href="https://github.com/sazzadh88/ignite">GitHub</a>
+                <a href="https://github.com/sazzadh88/ignite">Ecosystem</a>
+            </div>
+            <p class="ver">Ignite v{{ .frameworkVersion }} &middot; {{ .goVersion }}</p>
+        </div>
+    </div>
+@endsection

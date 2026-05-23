@@ -1,0 +1,4 @@
+package public
+
+// This file serves as the entry point for the public directory.
+// Static assets are served from this directory.

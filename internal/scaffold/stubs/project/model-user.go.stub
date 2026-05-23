@@ -1,0 +1,28 @@
+package Models
+
+// User represents the application user. It implements auth.Authenticatable
+// (GetAuthIdentifier / GetAuthPassword) so it works with the framework's
+// auth guards and user providers.
+type User struct {
+	ID        int64
+	Name      string
+	Email     string
+	Password  string
+	CreatedAt string
+	UpdatedAt string
+}
+
+// GetAuthIdentifier returns the unique identifier (primary key).
+func (u *User) GetAuthIdentifier() any { return u.ID }
+
+// GetAuthPassword returns the hashed password.
+func (u *User) GetAuthPassword() string { return u.Password }
+
+// Table returns the table name.
+func (u *User) Table() string { return "users" }
+
+// Fillable returns mass-assignable fields.
+func (u *User) Fillable() []string { return []string{"name", "email", "password"} }
+
+// Hidden returns fields hidden from serialization.
+func (u *User) Hidden() []string { return []string{"password"} }

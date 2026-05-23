@@ -1,0 +1,10 @@
+package bootstrap
+
+import "github.com/sazzadh88/ignite/foundation"
+
+// CreateApplication bootstraps and returns the application.
+func CreateApplication() *foundation.Application {
+	app := foundation.NewApplication(".")
+	app.Bootstrap()
+	return app
+}

@@ -1,0 +1,26 @@
+package migrations
+
+import "github.com/sazzadh88/ignite/schema"
+
+func init() {
+	schema.RegisterMigration("0001_01_01_000000_create_users_table", &CreateUsersTable{})
+}
+
+// CreateUsersTable creates the users table.
+type CreateUsersTable struct{}
+
+// Up runs the migration.
+func (m *CreateUsersTable) Up(s *schema.Schema) error {
+	return s.Create("users", func(t *schema.Blueprint) {
+		t.ID()
+		t.String("name")
+		t.String("email").Unique()
+		t.String("password")
+		t.Timestamps()
+	})
+}
+
+// Down reverses the migration.
+func (m *CreateUsersTable) Down(s *schema.Schema) error {
+	return s.DropIfExists("users")
+}

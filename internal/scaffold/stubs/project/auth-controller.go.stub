@@ -1,0 +1,230 @@
+package Controllers
+
+import (
+	"net/http"
+	"strings"
+
+	"github.com/sazzadh88/ignite/hashing"
+	"github.com/sazzadh88/ignite/view"
+
+	"__MOD__/app/appauth"
+	"__MOD__/app/appcsrf"
+	"__MOD__/app/repositories"
+)
+
+// AuthController handles registration, login and logout.
+type AuthController struct{}
+
+func (c *AuthController) render(w http.ResponseWriter, r *http.Request, name string, data map[string]any) {
+	data["CSRFToken"] = appcsrf.Token(r)
+	engine := view.NewEngine("resources/views")
+	html, err := engine.Render(name, data)
+	if err != nil {
+		http.Error(w, "View error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(html))
+}
+
+// ShowRegister renders the registration form.
+func (c *AuthController) ShowRegister(w http.ResponseWriter, r *http.Request) {
+	c.render(w, r, "auth.register", map[string]any{"Error": "", "Name": "", "Email": ""})
+}
+
+// Register creates a new user and logs them in.
+func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	name := strings.TrimSpace(r.FormValue("name"))
+	email := strings.TrimSpace(r.FormValue("email"))
+	password := r.FormValue("password")
+
+	fail := func(msg string) {
+		c.render(w, r, "auth.register", map[string]any{"Error": msg, "Name": name, "Email": email})
+	}
+
+	if name == "" || email == "" || len(password) < 6 {
+		fail("All fields are required and password must be at least 6 characters.")
+		return
+	}
+	if exists, _ := repositories.EmailExists(email); exists {
+		fail("That email is already registered.")
+		return
+	}
+	hash, err := hashing.Hash.Make(password)
+	if err != nil {
+		fail("Could not hash password.")
+		return
+	}
+	u, err := repositories.Create(name, email, hash)
+	if err != nil {
+		fail("Could not create account: " + err.Error())
+		return
+	}
+	appauth.LoginUser(w, r, u)
+	http.Redirect(w, r, appauth.RedirectTo, http.StatusFound)
+}
+
+// ShowLogin renders the login form.
+func (c *AuthController) ShowLogin(w http.ResponseWriter, r *http.Request) {
+	intended := r.URL.Query().Get("intended")
+	c.render(w, r, "auth.login", map[string]any{"Error": "", "Email": "", "Intended": intended})
+}
+
+// Login authenticates a user.
+func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	email := strings.TrimSpace(r.FormValue("email"))
+	password := r.FormValue("password")
+
+	// Resolve intended redirect URL from query param or form field.
+	intended := r.URL.Query().Get("intended")
+	if intended == "" {
+		intended = r.FormValue("intended")
+	}
+
+	if appauth.Attempt(w, r, email, password) {
+		dest := intended
+		if dest == "" {
+			dest = appauth.RedirectTo
+		}
+		http.Redirect(w, r, dest, http.StatusFound)
+		return
+	}
+	c.render(w, r, "auth.login", map[string]any{"Error": "Invalid credentials.", "Email": email, "Intended": intended})
+}
+
+// Logout ends the session.
+func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
+	appauth.Logout(w, r)
+	http.Redirect(w, r, "/login", http.StatusFound)
+}
+
+// Dashboard is a protected page.
+func (c *AuthController) Dashboard(w http.ResponseWriter, r *http.Request) {
+	data := map[string]any{"Name": "", "Email": "", "CreatedAt": "", "Active": "dashboard"}
+	if u := appauth.Current(w, r); u != nil {
+		data["Name"] = u.Name
+		data["Email"] = u.Email
+		data["CreatedAt"] = u.CreatedAt
+	}
+	c.render(w, r, "dashboard", data)
+}
+
+// ShowProfile renders the profile edit page.
+func (c *AuthController) ShowProfile(w http.ResponseWriter, r *http.Request) {
+	data := map[string]any{"Error": "", "Success": "", "Name": "", "Email": "", "Active": "profile"}
+	if u := appauth.Current(w, r); u != nil {
+		data["Name"] = u.Name
+		data["Email"] = u.Email
+		data["CreatedAt"] = u.CreatedAt
+	}
+	c.render(w, r, "auth.profile", data)
+}
+
+// UpdateProfile handles the profile update form submission.
+func (c *AuthController) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	name := strings.TrimSpace(r.FormValue("name"))
+	email := strings.TrimSpace(r.FormValue("email"))
+
+	u := appauth.Current(w, r)
+	if u == nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	data := map[string]any{"Error": "", "Success": "", "Name": name, "Email": email, "Active": "profile", "CreatedAt": u.CreatedAt}
+
+	if name == "" || email == "" {
+		data["Error"] = "Name and email are required."
+		c.render(w, r, "auth.profile", data)
+		return
+	}
+
+	// Check if email changed and is taken by another user.
+	if email != u.Email {
+		if exists, _ := repositories.EmailExists(email); exists {
+			data["Error"] = "That email is already in use."
+			c.render(w, r, "auth.profile", data)
+			return
+		}
+	}
+
+	if err := repositories.UpdateProfile(u.ID, name, email); err != nil {
+		data["Error"] = "Could not update profile: " + err.Error()
+		c.render(w, r, "auth.profile", data)
+		return
+	}
+
+	data["Success"] = "Profile updated successfully."
+	data["Name"] = name
+	data["Email"] = email
+	c.render(w, r, "auth.profile", data)
+}
+
+// ShowChangePassword renders the change password form.
+func (c *AuthController) ShowChangePassword(w http.ResponseWriter, r *http.Request) {
+	data := map[string]any{"Error": "", "Success": "", "Active": "change-password"}
+	if u := appauth.Current(w, r); u != nil {
+		data["Name"] = u.Name
+		data["Email"] = u.Email
+	}
+	c.render(w, r, "auth.change-password", data)
+}
+
+// ChangePassword handles the password change form submission.
+func (c *AuthController) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	current := r.FormValue("current_password")
+	newPass := r.FormValue("password")
+	confirm := r.FormValue("password_confirmation")
+
+	u := appauth.Current(w, r)
+	if u == nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	data := map[string]any{"Error": "", "Success": "", "Active": "change-password", "Name": u.Name, "Email": u.Email}
+
+	if current == "" || newPass == "" || confirm == "" {
+		data["Error"] = "All fields are required."
+		c.render(w, r, "auth.change-password", data)
+		return
+	}
+
+	if newPass != confirm {
+		data["Error"] = "New password and confirmation do not match."
+		c.render(w, r, "auth.change-password", data)
+		return
+	}
+
+	if len(newPass) < 6 {
+		data["Error"] = "New password must be at least 6 characters."
+		c.render(w, r, "auth.change-password", data)
+		return
+	}
+
+	if !hashing.Hash.Check(current, u.Password) {
+		data["Error"] = "Current password is incorrect."
+		c.render(w, r, "auth.change-password", data)
+		return
+	}
+
+	hash, err := hashing.Hash.Make(newPass)
+	if err != nil {
+		data["Error"] = "Could not hash new password."
+		c.render(w, r, "auth.change-password", data)
+		return
+	}
+
+	if err := repositories.UpdatePassword(u.ID, hash); err != nil {
+		data["Error"] = "Could not update password: " + err.Error()
+		c.render(w, r, "auth.change-password", data)
+		return
+	}
+
+	data["Success"] = "Password changed successfully."
+	c.render(w, r, "auth.change-password", data)
+}

@@ -1,0 +1,29 @@
+package Policies
+
+// __NAME__ handles authorization for resources.
+type __NAME__ struct{}
+
+// ViewAny determines if the user can view any models.
+func (p *__NAME__) ViewAny(user any) bool {
+	return true
+}
+
+// View determines if the user can view the model.
+func (p *__NAME__) View(user any, model any) bool {
+	return true
+}
+
+// Create determines if the user can create models.
+func (p *__NAME__) Create(user any) bool {
+	return true
+}
+
+// Update determines if the user can update the model.
+func (p *__NAME__) Update(user any, model any) bool {
+	return true
+}
+
+// Delete determines if the user can delete the model.
+func (p *__NAME__) Delete(user any, model any) bool {
+	return true
+}

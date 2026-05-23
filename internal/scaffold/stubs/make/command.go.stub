@@ -1,0 +1,20 @@
+package Commands
+
+// __NAME__ is a console command.
+type __NAME__ struct{}
+
+// Signature returns the command signature.
+func (c *__NAME__) Signature() string {
+	return "__SIGNATURE__"
+}
+
+// Description returns the command description.
+func (c *__NAME__) Description() string {
+	return "Command description"
+}
+
+// Handle executes the command.
+func (c *__NAME__) Handle() error {
+	// TODO: implement
+	return nil
+}

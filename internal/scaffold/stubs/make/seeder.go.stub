@@ -1,0 +1,9 @@
+package seeders
+
+// __NAME__ seeds the database.
+type __NAME__ struct{}
+
+// Run executes the seeder.
+func (s *__NAME__) Run() {
+	// TODO: implement seeding logic
+}

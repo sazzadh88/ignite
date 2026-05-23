@@ -1,0 +1,117 @@
+// Package appcsrf adds Laravel-style CSRF protection. The framework
+// router does not run middleware, so this wraps the router: it issues a
+// per-session token in an encrypted cookie, exposes it to views as
+// .CSRFToken (the @csrf blade directive), and rejects unsafe requests
+// whose submitted token is missing or wrong.
+package appcsrf
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"net/http"
+
+	"github.com/sazzadh88/ignite/encryption"
+	"github.com/sazzadh88/ignite/routing"
+)
+
+const cookieName = "ignite_csrf"
+
+type ctxKey struct{}
+
+// Guard wraps the router with CSRF protection. It embeds *routing.Router so
+// it still satisfies the framework RouterInterface (PrintRoutes/RouteList).
+type Guard struct {
+	*routing.Router
+}
+
+// Protect wraps the application router with CSRF protection.
+func Protect(r *routing.Router) *Guard { return &Guard{r} }
+
+func newToken() string {
+	b := make([]byte, 32)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+func decode(v string) string {
+	if encryption.Crypt == nil {
+		return v
+	}
+	s, err := encryption.Crypt.DecryptString(v)
+	if err != nil {
+		return ""
+	}
+	return s
+}
+
+func encode(t string) string {
+	if encryption.Crypt == nil {
+		return t
+	}
+	s, err := encryption.Crypt.EncryptString(t)
+	if err != nil {
+		return t
+	}
+	return s
+}
+
+// ServeHTTP issues/validates the CSRF token, then delegates to the router.
+func (g *Guard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	token := ""
+	if c, err := r.Cookie(cookieName); err == nil && c.Value != "" {
+		token = decode(c.Value)
+	}
+	if token == "" {
+		token = newToken()
+		http.SetCookie(w, &http.Cookie{
+			Name:     cookieName,
+			Value:    encode(token),
+			Path:     "/",
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		})
+	}
+
+	switch r.Method {
+	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+		sent := r.Header.Get("X-CSRF-Token")
+		if sent == "" {
+			r.ParseForm()
+			sent = r.PostFormValue("_token")
+		}
+		if sent == "" || sent != token {
+			ErrorPage(w, 419, "Page Expired", "Your session has expired. Please go back, refresh the page, and try again.")
+			return
+		}
+	}
+
+	r = r.WithContext(context.WithValue(r.Context(), ctxKey{}, token))
+	g.Router.ServeHTTP(w, r)
+}
+
+// Token returns the current request's CSRF token. Pass it to views as
+// the "CSRFToken" key so the @csrf directive renders correctly.
+func Token(r *http.Request) string {
+	if v, ok := r.Context().Value(ctxKey{}).(string); ok {
+		return v
+	}
+	return ""
+}
+
+// ErrorPage renders a styled HTML error page. Use it from any handler or
+// middleware that needs to abort the request with a user-facing error.
+func ErrorPage(w http.ResponseWriter, code int, title, message string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(code)
+	fmt.Fprintf(w, errorPageTpl, code, title, code, title, message)
+}
+
+// NotFoundHandler returns an http.HandlerFunc suitable for the router's
+// fallback — it renders a styled 404 page.
+func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
+	ErrorPage(w, 404, "Page Not Found", "The page you are looking for does not exist or has been moved.")
+}
+
+var errorPageTpl = `__ERROR_PAGE_TPL__`

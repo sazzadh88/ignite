@@ -1,0 +1,43 @@
+package Controllers
+
+import "net/http"
+
+// __NAME__ handles HTTP requests.
+type __NAME__ struct {
+	Controller
+}
+
+// Index handles GET requests.
+func (c *__NAME__) Index(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement
+}
+
+// Create handles GET requests for the create form.
+func (c *__NAME__) Create(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement
+}
+
+// Store handles POST requests.
+func (c *__NAME__) Store(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement
+}
+
+// Show handles GET requests for a single resource.
+func (c *__NAME__) Show(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement
+}
+
+// Edit handles GET requests for the edit form.
+func (c *__NAME__) Edit(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement
+}
+
+// Update handles PUT/PATCH requests.
+func (c *__NAME__) Update(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement
+}
+
+// Destroy handles DELETE requests.
+func (c *__NAME__) Destroy(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement
+}
