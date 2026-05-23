@@ -1,0 +1,9 @@
+package routes
+
+// API routes are loaded by the RouteServiceProvider.
+// These routes are assigned the "api" middleware group with /api prefix.
+
+func RegisterAPI() {
+	// Route.Get("/users", controllers.UserController.Index)
+	// Route.Post("/users", controllers.UserController.Store)
+}

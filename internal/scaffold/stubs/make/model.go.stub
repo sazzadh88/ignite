@@ -1,0 +1,18 @@
+package Models
+
+// __NAME__ represents the __NAME__ model.
+type __NAME__ struct {
+	ID        uint64
+	CreatedAt string
+	UpdatedAt string
+}
+
+// Table returns the table name.
+func (m *__NAME__) Table() string {
+	return "__TABLE__"
+}
+
+// Fillable returns mass-assignable fields.
+func (m *__NAME__) Fillable() []string {
+	return []string{}
+}

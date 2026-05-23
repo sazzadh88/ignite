@@ -11,6 +11,7 @@ import (
 
 	"github.com/sazzadh88/ignite/config"
 	"github.com/sazzadh88/ignite/container"
+	"github.com/sazzadh88/ignite/encryption"
 	"github.com/sazzadh88/ignite/internal/scaffold"
 )
 
@@ -64,12 +65,27 @@ func (app *Application) Bootstrap() {
 	config.LoadEnv(envPath)
 
 	app.environment = config.Env("APP_ENV", "local")
-	app.config.Set("app.name", config.Env("APP_NAME", "Ignite"))
-	app.config.Set("app.env", app.environment)
-	app.config.Set("app.debug", config.EnvBool("APP_DEBUG", true))
-	app.config.Set("app.port", config.EnvInt("APP_PORT", 8080))
-	app.config.Set("app.key", config.Env("APP_KEY", ""))
-	app.config.Set("app.url", config.Env("APP_URL", "http://localhost"))
+	app.loadConfiguration()
+
+	app.bootEncrypter()
+}
+
+// bootEncrypter initializes the encryption facade from APP_KEY when the key
+// is valid. A missing or invalid key is not fatal here (console commands such
+// as key:generate must still run); enforcement happens in serve().
+func (app *Application) bootEncrypter() {
+	keyBytes, err := parseAppKey(config.Env("APP_KEY", ""))
+	if err != nil {
+		return
+	}
+
+	enc, err := encryption.NewEncrypter(keyBytes)
+	if err != nil {
+		return
+	}
+
+	encryption.Crypt = enc
+	app.Instance("encrypter", enc)
 }
 
 // Register registers a service provider.
@@ -267,6 +283,17 @@ func (app *Application) handleCommand(command string, args []string, router Rout
 	case "version", "--version", "-v":
 		fmt.Printf("  Ignite v%s\n", Version)
 
+	case "key:generate":
+		key, err := GenerateAppKey(app.basePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "  Error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Setenv("APP_KEY", key)
+		app.config.Set("app.key", key)
+		app.bootEncrypter()
+		fmt.Println("  Application key set successfully.")
+
 	// Make commands
 	case "make:controller":
 		if len(positional) < 1 {
@@ -392,20 +419,11 @@ func (app *Application) handleCommand(command string, args []string, router Rout
 		fmt.Printf("  ✓ Policy '%s' created.\n", positional[0])
 
 	// Database commands
-	case "migrate":
-		fmt.Println("  Running migrations...")
-
-	case "migrate:rollback":
-		fmt.Println("  Rolling back...")
-
-	case "migrate:refresh":
-		fmt.Println("  Refreshing...")
-
-	case "migrate:fresh":
-		_, withSeed := flags["seed"]
-		fmt.Println("  Dropping all tables and re-running migrations...")
-		if withSeed {
-			fmt.Println("  Seeding database...")
+	case "migrate", "migrate:rollback", "migrate:refresh",
+		"migrate:fresh", "migrate:reset", "migrate:status":
+		if err := app.runMigrate(command); err != nil {
+			fmt.Fprintf(os.Stderr, "  Error: %v\n", err)
+			os.Exit(1)
 		}
 
 	case "db:seed":
@@ -441,6 +459,11 @@ func (app *Application) handleCommand(command string, args []string, router Rout
 }
 
 func (app *Application) serve(router RouterInterface, host, port string) {
+	if _, err := parseAppKey(config.Env("APP_KEY", "")); err != nil {
+		fmt.Fprintf(os.Stderr, "\n  %s\n\n", missingAppKeyError)
+		os.Exit(1)
+	}
+
 	name := app.config.GetString("app.name", "Ignite")
 
 	fmt.Printf("\n  %s v%s\n", name, Version)
@@ -485,6 +508,7 @@ func (app *Application) printHelp() {
 	fmt.Println("    route:list                Display registered routes")
 	fmt.Println("    env                       Show current environment")
 	fmt.Println("    version                   Show framework version")
+	fmt.Println("    key:generate              Set the application encryption key")
 	fmt.Println()
 	fmt.Println("  Make commands:")
 	fmt.Println("    make:controller <Name>    Generate a controller [--api]")

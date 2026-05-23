@@ -1,0 +1,14 @@
+package Providers
+
+import "github.com/sazzadh88/ignite/foundation"
+
+// RouteServiceProvider loads application routes.
+type RouteServiceProvider struct{}
+
+// Register is called during registration phase.
+func (p *RouteServiceProvider) Register(app *foundation.Application) {}
+
+// Boot loads the routes.
+func (p *RouteServiceProvider) Boot(app *foundation.Application) {
+	// Load web and API routes
+}

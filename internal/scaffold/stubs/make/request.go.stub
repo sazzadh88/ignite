@@ -1,0 +1,19 @@
+package Requests
+
+// __NAME__Request handles validation for __NAME__ operations.
+type __NAME__Request struct{}
+
+// Rules returns validation rules.
+func (r *__NAME__Request) Rules() map[string]string {
+	return map[string]string{}
+}
+
+// Authorize checks if the user is authorized to make this request.
+func (r *__NAME__Request) Authorize() bool {
+	return true
+}
+
+// Messages returns custom validation messages.
+func (r *__NAME__Request) Messages() map[string]string {
+	return nil
+}

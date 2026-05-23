@@ -1,0 +1,18 @@
+package config
+
+import icfg "github.com/sazzadh88/ignite/config"
+
+// registerApp defines application configuration. Values come from .env;
+// the second argument to icfg.Env is the default. This block is the whole
+// "app" config section (the analog of Laravel's config/app.php).
+func registerApp(c *icfg.Repository) {
+	c.Set("app", map[string]any{
+		"name":     icfg.Env("APP_NAME", "Ignite"),
+		"env":      icfg.Env("APP_ENV", "local"),
+		"debug":    icfg.EnvBool("APP_DEBUG", true),
+		"url":      icfg.Env("APP_URL", "http://localhost"),
+		"port":     icfg.EnvInt("APP_PORT", 8080),
+		"key":      icfg.Env("APP_KEY", ""),
+		"timezone": icfg.Env("APP_TIMEZONE", "UTC"),
+	})
+}

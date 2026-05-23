@@ -1,0 +1,32 @@
+// Package projdb exposes the application's default database connection,
+// built from config at boot. The framework ORM does not persist yet, so
+// repositories use this *database.Connection directly.
+package projdb
+
+import (
+	"fmt"
+
+	"github.com/sazzadh88/ignite/config"
+	"github.com/sazzadh88/ignite/database"
+)
+
+var conn *database.Connection
+
+// Init opens the default database connection from configuration.
+// Call this from main.go after config.Load().
+func Init(c *config.Repository) error {
+	dbCfg, ok := c.Get("database").(map[string]any)
+	if !ok {
+		return fmt.Errorf("database configuration not found")
+	}
+	mgr := database.NewManager(dbCfg)
+	cn, err := mgr.Default()
+	if err != nil {
+		return fmt.Errorf("database connect: %w", err)
+	}
+	conn = cn
+	return nil
+}
+
+// Conn returns the application database connection.
+func Conn() *database.Connection { return conn }

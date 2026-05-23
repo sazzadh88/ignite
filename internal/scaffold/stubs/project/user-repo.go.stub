@@ -1,0 +1,119 @@
+// Package repositories holds database access for models. The framework
+// ORM does not persist yet, so these use the raw *database.Connection.
+package repositories
+
+import (
+	"database/sql"
+	"fmt"
+
+	"__MOD__/app/Models"
+	"__MOD__/app/projdb"
+)
+
+// EmailExists reports whether a user with the given email already exists.
+func EmailExists(email string) (bool, error) {
+	rows, err := projdb.Conn().Query("SELECT id FROM users WHERE email = ? LIMIT 1", email)
+	if err != nil {
+		return false, err
+	}
+	return len(rows) > 0, nil
+}
+
+// Create inserts a new user and returns the stored record.
+func Create(name, email, passwordHash string) (*Models.User, error) {
+	_, err := projdb.Conn().Exec(
+		"INSERT INTO users (name, email, password, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+		name, email, passwordHash,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return FindByEmail(email)
+}
+
+// FindByEmail returns the user with the given email, or sql.ErrNoRows.
+func FindByEmail(email string) (*Models.User, error) {
+	rows, err := projdb.Conn().Query(
+		"SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = ? LIMIT 1",
+		email,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return firstUser(rows)
+}
+
+// FindByID returns the user with the given id. id may arrive as int64 or
+// float64 (the latter after a JSON round-trip through the session cookie).
+func FindByID(id any) (*Models.User, error) {
+	rows, err := projdb.Conn().Query(
+		"SELECT id, name, email, password, created_at, updated_at FROM users WHERE id = ? LIMIT 1",
+		toInt64(id),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return firstUser(rows)
+}
+
+// UpdateProfile updates the user's name and email.
+func UpdateProfile(id int64, name, email string) error {
+	_, err := projdb.Conn().Exec(
+		"UPDATE users SET name = ?, email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+		name, email, id,
+	)
+	return err
+}
+
+// UpdatePassword updates the user's hashed password.
+func UpdatePassword(id int64, passwordHash string) error {
+	_, err := projdb.Conn().Exec(
+		"UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+		passwordHash, id,
+	)
+	return err
+}
+
+func firstUser(rows []map[string]any) (*Models.User, error) {
+	if len(rows) == 0 {
+		return nil, sql.ErrNoRows
+	}
+	r := rows[0]
+	return &Models.User{
+		ID:        toInt64(r["id"]),
+		Name:      str(r["name"]),
+		Email:     str(r["email"]),
+		Password:  str(r["password"]),
+		CreatedAt: str(r["created_at"]),
+		UpdatedAt: str(r["updated_at"]),
+	}, nil
+}
+
+func str(v any) string {
+	switch s := v.(type) {
+	case nil:
+		return ""
+	case string:
+		return s
+	case []byte:
+		return string(s)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
+func toInt64(v any) int64 {
+	switch n := v.(type) {
+	case int64:
+		return n
+	case int:
+		return int64(n)
+	case float64:
+		return int64(n)
+	case string:
+		var i int64
+		fmt.Sscan(n, &i)
+		return i
+	}
+	return 0
+}

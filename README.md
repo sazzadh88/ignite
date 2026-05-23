@@ -69,13 +69,16 @@ cd myapp
 go mod tidy
 ```
 
-Start the development server:
+Set the application key, then start the development server using the
+project's own `./ignite` console:
 
 ```bash
-go run main.go serve
+./ignite key:generate
+./ignite serve
 ```
 
-Your application is now running at `http://localhost:8080`.
+Your application is now running at `http://localhost:8080`. (The server
+refuses to start until a valid `APP_KEY` is set.)
 
 ## Features
 
@@ -172,59 +175,49 @@ Ignite comes with a comprehensive suite of features for building modern web appl
 
 ## CLI Commands
 
-The Ignite CLI provides artisan-like commands for rapid development:
+Ignite has two CLIs, following the Rails `bin/rails` model:
+
+- **Global `ignite`** — the installer. Only `ignite new`, `ignite version`,
+  and `ignite upgrade`.
+- **Project `./ignite`** — shipped in every project root. Runs all project
+  commands using the framework version pinned in that project's `go.mod`,
+  so they never depend on the globally-installed binary's version.
 
 ```bash
-# Application
+# Global installer
 ignite new <name>           # Create a new Ignite application
-ignite serve                # Start the development server
-ignite env                  # Display the current environment
+ignite version              # Show framework version
+ignite upgrade              # Upgrade the global ignite binary
+
+# Project console (run from the project root)
+./ignite serve              # Start the development server (requires APP_KEY)
+./ignite key:generate       # Set the application encryption key
+./ignite env                # Display the current environment
 
 # Make Commands
-ignite make:controller      # Create a new controller
-ignite make:model           # Create a new model
-ignite make:migration       # Create a new migration
-ignite make:seeder          # Create a new seeder
-ignite make:middleware      # Create a new middleware
-ignite make:request         # Create a new form request
-ignite make:policy          # Create a new policy
-ignite make:job             # Create a new job
-ignite make:event           # Create a new event
-ignite make:listener        # Create a new event listener
-ignite make:mail            # Create a new mail template
-ignite make:notification    # Create a new notification
-ignite make:resource        # Create a new API resource
+./ignite make:controller    # Create a new controller
+./ignite make:model         # Create a new model
+./ignite make:migration     # Create a new migration
+./ignite make:seeder        # Create a new seeder
+./ignite make:middleware    # Create a new middleware
+./ignite make:request       # Create a new form request
+./ignite make:policy        # Create a new policy
+./ignite make:job           # Create a new job
+./ignite make:event         # Create a new event
+./ignite make:listener      # Create a new event listener
 
 # Database
-ignite migrate              # Run database migrations
-ignite migrate:rollback     # Rollback the last migration
-ignite migrate:fresh        # Drop all tables and re-run migrations
-ignite migrate:reset        # Rollback all migrations
-ignite migrate:status       # Show migration status
-ignite db:seed              # Seed the database
+./ignite migrate            # Run database migrations
+./ignite migrate:status     # Show migration status
+./ignite migrate:rollback   # Rollback the last batch
+./ignite migrate:reset      # Rollback all migrations
+./ignite migrate:refresh    # Rollback and re-run all migrations
+./ignite migrate:fresh      # Drop all tables and re-run migrations
+./ignite db:seed            # Seed the database
 
-# Queue
-ignite queue:work           # Start processing jobs
-ignite queue:listen         # Listen for jobs
-ignite queue:failed         # List failed jobs
-ignite queue:retry          # Retry failed jobs
-ignite queue:flush          # Flush failed jobs
-
-# Cache
-ignite cache:clear          # Clear the application cache
-ignite cache:forget         # Remove an item from the cache
-
-# Route
-ignite route:list           # List all registered routes
-ignite route:cache          # Cache the routes for faster registration
-
-# Config
-ignite config:cache         # Cache the configuration
-ignite config:clear         # Clear the configuration cache
-
-# Schedule
-ignite schedule:run         # Run scheduled commands
-ignite schedule:list        # List scheduled commands
+# Queue / Schedule
+./ignite queue:work         # Start processing jobs
+./ignite schedule:run       # Run scheduled commands
 ```
 
 ## Project Structure
@@ -256,15 +249,12 @@ myapp/
 ├── bootstrap/
 │   └── app.go
 ├── config/
-│   ├── app.go
-│   ├── database.go
-│   ├── auth.go
-│   ├── cache.go
-│   ├── mail.go
-│   ├── queue.go
-│   └── session.go
+│   ├── config.go      # Loads project config onto framework defaults
+│   ├── app.go         # reads .env
+│   └── database.go    # reads .env
 ├── database/
 │   ├── migrations/
+│   │   └── migrations.go   # package base; generated migrations self-register
 │   ├── seeders/
 │   └── factories/
 ├── public/
@@ -289,6 +279,8 @@ myapp/
 ├── tests/
 │   ├── Feature/
 │   └── Unit/
+├── ignite             # Project console (./ignite serve, migrate, ...)
+├── ignite.bat         # Windows project console
 ├── .env
 ├── .env.example
 ├── go.mod

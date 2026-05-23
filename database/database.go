@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 )
 
@@ -71,30 +72,54 @@ func (m *Manager) Connection(name string) (*Connection, error) {
 		return nil, fmt.Errorf("driver not specified for connection '%s'", name)
 	}
 
-	dsn, ok := connConfig["dsn"].(string)
-	if !ok {
-		return nil, fmt.Errorf("dsn not specified for connection '%s'", name)
+	// Resolve the list of DSNs to try. A precomputed dsn wins. For Postgres
+	// we emulate libpq's "prefer": attempt an encrypted connection first and
+	// fall back to plaintext only if the server has no SSL — most security
+	// that still establishes a connection.
+	var dsns []string
+	if pre, _ := connConfig["dsn"].(string); pre != "" {
+		dsns = []string{pre}
+	} else if driver == "postgres" || driver == "pgsql" {
+		for _, mode := range postgresSSLAttempts(connConfig) {
+			cc := cloneConfig(connConfig)
+			cc["sslmode"] = mode
+			built, err := buildDSN(driver, cc)
+			if err != nil {
+				return nil, fmt.Errorf("connection '%s': %w", name, err)
+			}
+			dsns = append(dsns, built)
+		}
+	} else {
+		built, err := buildDSN(driver, connConfig)
+		if err != nil {
+			return nil, fmt.Errorf("connection '%s': %w", name, err)
+		}
+		dsns = []string{built}
 	}
 
-	// Open database connection
-	db, err := sql.Open(driver, dsn)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open connection '%s': %w", name, err)
-	}
-
-	// Set connection pool settings if provided
-	if maxOpen, ok := connConfig["max_open_conns"].(int); ok {
-		db.SetMaxOpenConns(maxOpen)
-	}
-
-	if maxIdle, ok := connConfig["max_idle_conns"].(int); ok {
-		db.SetMaxIdleConns(maxIdle)
-	}
-
-	// Test the connection
-	if err := db.Ping(); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("failed to ping connection '%s': %w", name, err)
+	var db *sql.DB
+	var lastErr error
+	for i, dsn := range dsns {
+		db, lastErr = sql.Open(driver, dsn)
+		if lastErr == nil {
+			if maxOpen, ok := connConfig["max_open_conns"].(int); ok {
+				db.SetMaxOpenConns(maxOpen)
+			}
+			if maxIdle, ok := connConfig["max_idle_conns"].(int); ok {
+				db.SetMaxIdleConns(maxIdle)
+			}
+			lastErr = db.Ping()
+			if lastErr == nil {
+				break
+			}
+			db.Close()
+		}
+		// Only fall back to the next (less secure) DSN when the failure is
+		// specifically the server lacking SSL — never mask auth/other errors.
+		if i < len(dsns)-1 && strings.Contains(lastErr.Error(), "SSL is not enabled") {
+			continue
+		}
+		return nil, fmt.Errorf("failed to connect '%s': %w", name, lastErr)
 	}
 
 	conn = newConnection(db, name)

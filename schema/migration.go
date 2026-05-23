@@ -83,14 +83,65 @@ func (m *Migrator) getRanMigrations() ([]MigrationRecord, error) {
 	records := make([]MigrationRecord, len(results))
 	for i, row := range results {
 		records[i] = MigrationRecord{
-			ID:        row["id"].(int64),
-			Migration: row["migration"].(string),
-			Batch:     int(row["batch"].(int64)),
-			RanAt:     row["ran_at"].(time.Time),
+			ID:        rowInt64(row["id"]),
+			Migration: rowString(row["migration"]),
+			Batch:     int(rowInt64(row["batch"])),
+			RanAt:     rowTime(row["ran_at"]),
 		}
 	}
 
 	return records, nil
+}
+
+// Row values come back with driver-dependent Go types (int64, []byte,
+// string, time.Time). These helpers normalize them.
+func rowInt64(v any) int64 {
+	switch n := v.(type) {
+	case int64:
+		return n
+	case int:
+		return int64(n)
+	case float64:
+		return int64(n)
+	case []byte:
+		var i int64
+		fmt.Sscan(string(n), &i)
+		return i
+	case string:
+		var i int64
+		fmt.Sscan(n, &i)
+		return i
+	}
+	return 0
+}
+
+func rowString(v any) string {
+	switch s := v.(type) {
+	case string:
+		return s
+	case []byte:
+		return string(s)
+	}
+	if v == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v", v)
+}
+
+func rowTime(v any) time.Time {
+	switch t := v.(type) {
+	case time.Time:
+		return t
+	case []byte:
+		if parsed, err := time.Parse("2006-01-02 15:04:05", string(t)); err == nil {
+			return parsed
+		}
+	case string:
+		if parsed, err := time.Parse("2006-01-02 15:04:05", t); err == nil {
+			return parsed
+		}
+	}
+	return time.Time{}
 }
 
 // getLastBatch returns the last batch number.
@@ -104,12 +155,7 @@ func (m *Migrator) getLastBatch() (int, error) {
 		return 0, nil
 	}
 
-	maxBatch, ok := results[0]["max_batch"].(int64)
-	if !ok {
-		return 0, nil
-	}
-
-	return int(maxBatch), nil
+	return int(rowInt64(results[0]["max_batch"])), nil
 }
 
 // Migrate runs all pending migrations.
@@ -149,7 +195,8 @@ func (m *Migrator) Migrate() error {
 
 		// Record the migration
 		_, err := m.schema.connection.Exec(
-			"INSERT INTO migrations (migration, batch) VALUES (?, ?)",
+			fmt.Sprintf("INSERT INTO migrations (migration, batch) VALUES (%s, %s)",
+				m.schema.dialect.Placeholder(1), m.schema.dialect.Placeholder(2)),
 			name, nextBatch,
 		)
 		if err != nil {
@@ -177,7 +224,8 @@ func (m *Migrator) Rollback() error {
 
 	// Get migrations from the last batch
 	results, err := m.schema.connection.Query(
-		"SELECT migration FROM migrations WHERE batch = ? ORDER BY id DESC",
+		fmt.Sprintf("SELECT migration FROM migrations WHERE batch = %s ORDER BY id DESC",
+			m.schema.dialect.Placeholder(1)),
 		lastBatch,
 	)
 	if err != nil {
@@ -186,7 +234,7 @@ func (m *Migrator) Rollback() error {
 
 	// Rollback each migration in reverse order
 	for _, row := range results {
-		name := row["migration"].(string)
+		name := rowString(row["migration"])
 		migration, exists := m.migrations[name]
 		if !exists {
 			return fmt.Errorf("migration %s not found", name)
@@ -198,7 +246,8 @@ func (m *Migrator) Rollback() error {
 
 		// Remove the migration record
 		_, err := m.schema.connection.Exec(
-			"DELETE FROM migrations WHERE migration = ?",
+			fmt.Sprintf("DELETE FROM migrations WHERE migration = %s",
+				m.schema.dialect.Placeholder(1)),
 			name,
 		)
 		if err != nil {
@@ -211,23 +260,22 @@ func (m *Migrator) Rollback() error {
 
 // Fresh drops all tables and re-runs all migrations.
 func (m *Migrator) Fresh() error {
-	// Get all tables
-	results, err := m.schema.connection.Query(
-		"SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()",
-	)
+	query, nameCol := m.schema.dialect.CompileTables()
+	results, err := m.schema.connection.Query(query)
 	if err != nil {
 		return fmt.Errorf("failed to get tables: %w", err)
 	}
 
-	// Drop all tables
 	for _, row := range results {
-		tableName := row["table_name"].(string)
-		if err := m.schema.Drop(tableName); err != nil {
+		tableName := rowString(row[nameCol])
+		if tableName == "" {
+			continue
+		}
+		if err := m.schema.DropIfExists(tableName); err != nil {
 			return fmt.Errorf("failed to drop table %s: %w", tableName, err)
 		}
 	}
 
-	// Re-run all migrations
 	return m.Migrate()
 }
 
@@ -302,7 +350,8 @@ func (m *Migrator) Reset() error {
 
 		// Remove the migration record
 		_, err := m.schema.connection.Exec(
-			"DELETE FROM migrations WHERE id = ?",
+			fmt.Sprintf("DELETE FROM migrations WHERE id = %s",
+				m.schema.dialect.Placeholder(1)),
 			record.ID,
 		)
 		if err != nil {

@@ -1,0 +1,5 @@
+@echo off
+REM Ignite project console. Runs project commands using the framework
+REM version pinned in this project's go.mod.
+cd /d "%~dp0"
+go run . %*

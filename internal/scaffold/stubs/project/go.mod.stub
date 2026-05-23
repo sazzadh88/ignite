@@ -1,0 +1,7 @@
+module __MOD__
+
+go 1.22
+
+require github.com/sazzadh88/ignite v0.1.0
+
+replace github.com/sazzadh88/ignite => __IGNITE_PATH__

@@ -1,0 +1,12 @@
+package Middleware
+
+import "net/http"
+
+// Authenticate verifies the user is authenticated.
+type Authenticate struct{}
+
+// Handle processes the request.
+func (a *Authenticate) Handle(w http.ResponseWriter, r *http.Request, next http.Handler) {
+	// TODO: Check authentication
+	next.ServeHTTP(w, r)
+}

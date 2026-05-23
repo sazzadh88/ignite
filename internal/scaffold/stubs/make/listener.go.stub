@@ -1,0 +1,15 @@
+package Listeners
+
+// __NAME__ handles events.
+type __NAME__ struct{}
+
+// Handle processes the event.
+func (l *__NAME__) Handle(event any) error {
+	// TODO: implement
+	return nil
+}
+
+// ShouldQueue determines if the listener should be queued.
+func (l *__NAME__) ShouldQueue() bool {
+	return false
+}

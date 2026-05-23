@@ -1,0 +1,23 @@
+package migrations
+
+import "github.com/sazzadh88/ignite/schema"
+
+func init() {
+	schema.RegisterMigration("__MIGRATION_NAME__", &__NAME__{})
+}
+
+// __NAME__ migration.
+type __NAME__ struct{}
+
+// Up runs the migration.
+func (m *__NAME__) Up(s *schema.Schema) error {
+	return s.Create("__TABLE__", func(t *schema.Blueprint) {
+		t.ID()
+		t.Timestamps()
+	})
+}
+
+// Down reverses the migration.
+func (m *__NAME__) Down(s *schema.Schema) error {
+	return s.DropIfExists("__TABLE__")
+}

@@ -1,0 +1,4 @@
+// Package migrations holds the application's database migrations.
+// Each migration file registers itself via schema.RegisterMigration in an
+// init() function; main.go blank-imports this package so they load.
+package migrations

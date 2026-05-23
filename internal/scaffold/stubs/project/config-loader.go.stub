@@ -1,0 +1,10 @@
+package config
+
+import icfg "github.com/sazzadh88/ignite/config"
+
+// Load applies this project's configuration on top of the framework
+// defaults. It is called from main.go after app.Bootstrap().
+func Load(c *icfg.Repository) {
+	registerApp(c)
+	registerDatabase(c)
+}

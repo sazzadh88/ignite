@@ -1,0 +1,10 @@
+package seeders
+
+// DatabaseSeeder seeds the database with initial data.
+type DatabaseSeeder struct{}
+
+// Run executes the seeder.
+func (s *DatabaseSeeder) Run() {
+	// Call other seeders
+	// UserSeeder{}.Run()
+}

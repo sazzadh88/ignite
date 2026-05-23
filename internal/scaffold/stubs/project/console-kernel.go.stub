@@ -1,0 +1,14 @@
+package Console
+
+// Kernel registers console commands and scheduled tasks.
+type Kernel struct{}
+
+// Commands returns the list of registered commands.
+func (k *Kernel) Commands() []string {
+	return []string{}
+}
+
+// Schedule defines the application's command schedule.
+func (k *Kernel) Schedule() {
+	// schedule.Command("inspire").Hourly()
+}

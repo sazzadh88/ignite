@@ -1,0 +1,6 @@
+package Events
+
+// __NAME__ represents an event.
+type __NAME__ struct {
+	// Add event data fields
+}
